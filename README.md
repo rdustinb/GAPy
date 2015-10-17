@@ -2,7 +2,7 @@
 
 An assortment of Python scripts that FPGA developers can use to automate code development and work flow.
 
-getInstance.py - A script that will parse a user-specified HDL file's port list and parameter list, converting it to a block of code used for instantiation.
+***getInstance.py*** - A script that will parse a user-specified HDL file's port list and parameter list, converting it to a block of code used for instantiation.
 
 ## Code Example
 
@@ -15,6 +15,7 @@ FPGA development has a lack of automation tools, to say the least. I intend to c
 ## Installation
 
 Clone this project to an accessible location on your local machine or server: 
+
 ` git clone https://github.com/rdustinb/fpga_code_ops.git `
 
 Running any of the scripts for the first time from their install directory will cause that folder to be added to your $PATH one time only. From there the tools will be accessible from anywhere.
