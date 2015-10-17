@@ -4,16 +4,6 @@ An assortment of Python scripts that FPGA developers can use to automate code de
 
 ***getInstance.py*** - A script that will parse a user-specified HDL file's port list and parameter list, converting it to a block of code used for instantiation that is accessible from the user's OS Clipboard.
 
-## Code Example
-
-`getInstance.py --test`
-
-This will test the script with example code. Really only used to verify the script works.
-
-`getInstance.py path/to/hdl/file.[sv,v,vhd]`
-
-This is how the scripts is used. The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
-
 ## Motivation
 
 FPGA development has a lack of automation tools, to say the least. I intend to change that. This repository will contain a list of functions that will make an FPGA developers coding experience faster and more efficient.
@@ -35,6 +25,16 @@ The tools in this repository depend on the following Python Libraries:
 **sys** - allows Terminal arguments to be enumerated inside the scripts.
 
 **pyperclip** - allows the scripts to access your systems Clipboard for writing. Don't worry, these scripts aren't reading out of the Clipboard for any reasons.
+
+## Code Example
+
+`getInstance.py --test`
+
+This will test the script with example code. Really only used to verify the script works.
+
+`getInstance.py path/to/hdl/file.[sv,v,vhd]`
+
+This is how the scripts is used. The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
 
 ## Tests
 
