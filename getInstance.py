@@ -15,7 +15,7 @@ import pyperclip
 # Get the input from the terminal
 try:
   
-  args, opts = getopt.getopt(sys.argv[1:], "", ["path"])
+  args, opts = getopt.getopt(sys.argv[1:], "", ["test"])
   if(args == [] and opts == []):
     print("No options entered")
     pyperclip.copy("No options entered")

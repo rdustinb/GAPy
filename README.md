@@ -6,7 +6,13 @@ An assortment of Python scripts that FPGA developers can use to automate code de
 
 ## Code Example
 
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
+`getInstance.py --test`
+
+This will test the script with example code. Really only used to verify the script works.
+
+`getInstance.py path/to/hdl/file.[sv,v,vhd]`
+
+This is how the scripts is used. The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
 
 ## Motivation
 
