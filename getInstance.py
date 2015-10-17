@@ -2,6 +2,7 @@
 
 import getopt
 import sys
+import pyperclip
 
 """
   The purpose of this script is to provide a quick pasteable instance
@@ -17,9 +18,11 @@ try:
   args, opts = getopt.getopt(sys.argv[1:], "", ["path"])
   if(args == [] and opts == []):
     print("No options entered")
+    pyperclip.copy("No options entered")
   else:
     print("The following arguments were used: %s"%(args))
     print("The following options were used: %s"%(opts))
+    pyperclip.copy("The following arguments were used: %s\nThe following options were used: %s"%(args,opts))
 except getopt.error:
   print("That option is not supported.")
 
