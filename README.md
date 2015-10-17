@@ -16,6 +16,8 @@ Clone this project to an accessible location on your local machine or server:
 
 Running any of the scripts for the first time from their install directory will cause that folder to be added to your $PATH one time only. From there the tools will be accessible from anywhere.
 
+If any dependencies are missing each script will tell the designer how to install them.
+
 ### Dependecies ###
 
 The tools in this repository depend on the following Python Libraries:

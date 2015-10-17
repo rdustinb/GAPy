@@ -2,7 +2,14 @@
 
 import getopt
 import sys
-import pyperclip
+
+try:
+  import pyperclip
+except ImportError:
+  print("pyperclip (>= v1.3) is required for this tool. Please run:\n")
+  print("\tpip install pyperclip\n")
+  sys.exit()
+  
 
 """
   The purpose of this script is to provide a quick pasteable instance
