@@ -2,6 +2,8 @@
 
 import getopt
 import sys
+from os import getcwd
+from os import getenv
 
 try:
   import pyperclip
@@ -60,7 +62,7 @@ def stripSv(line):
     line,*blah = line.split("//")
   return line
 
-def structureSvInstance(stackedLine, tabSpace, allignCol):
+def structureSvInstance(stackedLine, tabSpace, alignCol):
   """
     This function restructures an input "stacked line" module declaration
     from a .sv file. Expecting a module declaration on one line in the form
@@ -105,13 +107,13 @@ def structureSvInstance(stackedLine, tabSpace, allignCol):
       if(newParams == ""):
         newParams = (" "*tabSpace)
         newParams = newParams+"."+param
-        newParams = newParams+(" "*(allignCol-len(param)))
+        newParams = newParams+(" "*(alignCol-len(param)))
         newParams = newParams+"("+param+")"
       else:
         newParams = newParams+",\n"
         newParams = newParams+(" "*tabSpace)
         newParams = newParams+"."+param
-        newParams = newParams+(" "*(allignCol-len(param)))
+        newParams = newParams+(" "*(alignCol-len(param)))
         newParams = newParams+"("+param+")"
     paramList = newParams
     portList,remainder = remainder.split(")")
@@ -121,13 +123,13 @@ def structureSvInstance(stackedLine, tabSpace, allignCol):
       if(newPorts == ""):
         newPorts = (" "*tabSpace)
         newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(allignCol-len(ports)))
+        newPorts = newPorts+(" "*(alignCol-len(ports)))
         newPorts = newPorts+"("+ports+")"
       else:
         newPorts = newPorts+",\n"
         newPorts = newPorts+(" "*tabSpace)
         newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(allignCol-len(ports)))
+        newPorts = newPorts+(" "*(alignCol-len(ports)))
         newPorts = newPorts+"("+ports+")"
     portList = newPorts
     newStackedPorts = modName+"\n"+paramList+"\n)(\n"+portList+"\n);"
@@ -142,13 +144,13 @@ def structureSvInstance(stackedLine, tabSpace, allignCol):
       if(newPorts == ""):
         newPorts = (" "*tabSpace)
         newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(allignCol-len(ports)))
+        newPorts = newPorts+(" "*(alignCol-len(ports)))
         newPorts = newPorts+"("+ports+")"
       else:
         newPorts = newPorts+",\n"
         newPorts = newPorts+(" "*tabSpace)
         newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(allignCol-len(ports)))
+        newPorts = newPorts+(" "*(alignCol-len(ports)))
         newPorts = newPorts+"("+ports+")"
     portList = newPorts
     newStackedPorts = modName+"\n"+portList+"\n);"
@@ -156,7 +158,7 @@ def structureSvInstance(stackedLine, tabSpace, allignCol):
 
 ###################################################
 # User Parse Function
-def userParse(fileName, tabSpace, allignCol):
+def userParse(fileName, tabSpace, alignCol):
   """
     Core of the script. Parses the user-specified HDL file and creates an
     instance block to be pasted into another HDL file.
@@ -182,7 +184,7 @@ def userParse(fileName, tabSpace, allignCol):
   # Final String Tweaks
   if(",)" in stackedLine):
     stackedLine = stackedLine.replace(",)", ")")
-  stackedLine = structureSvInstance(stackedLine,tabSpace,allignCol)
+  stackedLine = structureSvInstance(stackedLine,tabSpace,alignCol)
   pyperclip.copy(stackedLine)
   #print(stackedLine)
 
@@ -212,8 +214,7 @@ def testParse():
 ###################################################
 # Get the input from the terminal
 try:
-  
-  args, opts = getopt.getopt(sys.argv[1:], "", ["test"])
+  args, opts = getopt.getopt(sys.argv[1:], "", ["test","path"])
   if(args == [] and opts == []):
     print("No options entered. Please execute using the following")
     print("format:\n")
@@ -223,6 +224,19 @@ try:
     #print("The following options were used: %s"%(opts))
     if(any("--test" in element for element in args)):
       testParse()
+    elif(any("--path" in element for element in args)):
+      thisScriptPath = getcwd()
+      print("Current working directory is: %s"%thisScriptPath)
+      shellPath = getenv("SHELL")
+      print("Current shell is: %s"%shellPath)
+      aliasFilePath = getenv("HOME")+"/.alias"
+      with open(aliasFilePath, "a") as aliasFile:
+        # Write to bash alias
+        if(shellPath == "/bin/bash"):
+          aliasFile.write("alias getInstance='python3 %s/getInstance.py'"%(thisScriptPath))
+        # Write to csh alias
+        elif(shellPath == "/bin/csh"):
+          aliasFile.write("alias getInstance 'python3 %s/getInstance.py'"%(thisScriptPath))
     else:
       userParse(opts[0], int(opts[1]), int(opts[2]))
 except getopt.error:

@@ -30,13 +30,17 @@ The tools in this repository depend on the following Python Libraries:
 
 ## Code Example
 
+`getInstance.py --path`
+
+This will install the script, aliased as "getInstance" into your .alias file for future use from anywhere. It will act as another built-in terminal command.
+
 `getInstance.py --test`
 
 This will test the script with example code. Really only used to verify the script works.
 
-`getInstance.py path/to/hdl/file.[sv,v,vhd]`
+`getInstance path/to/hdl/file.sv <tabSpace> <column alignment>`
 
-This is how the scripts is used. The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
+This is how the scripts is used (after it has been installed with getInstal.py --path from its install directory). The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
 
 ## Tests
 
