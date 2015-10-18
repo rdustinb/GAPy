@@ -39,6 +39,9 @@ The tools in this repository depend on the following Python Libraries:
 This is how the scripts is used (after it has been installed with getInstal.py --path from its install directory). The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
 tabSpace indicates how many spaces the ports and parameters should be indented.
 column alignment indicates at which column number the port connections should be aligned for good whitespace formatting.
+I personally use the following command:
+
+`getInstance path/to/hdl/file.sv 2 25`
 
 ## Tests
 
