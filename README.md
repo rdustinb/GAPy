@@ -14,7 +14,11 @@ Clone this project to an accessible location on your local machine or server:
 
 ` git clone https://github.com/rdustinb/fpga_code_ops.git `
 
-Running any of the scripts for the first time from their install directory will cause that folder to be added to your $PATH one time only. From there the tools will be accessible from anywhere.
+The user should run:
+
+`python3 getInstance.py --path`
+
+to properly add the script to the user's .alias file for future use.
 
 If any dependencies are missing each script will tell the designer how to install them.
 
@@ -30,17 +34,11 @@ The tools in this repository depend on the following Python Libraries:
 
 ## Code Example
 
-`getInstance.py --path`
-
-This will install the script, aliased as "getInstance" into your .alias file for future use from anywhere. It will act as another built-in terminal command.
-
-`getInstance.py --test`
-
-This will test the script with example code. Really only used to verify the script works.
-
 `getInstance path/to/hdl/file.sv <tabSpace> <column alignment>`
 
 This is how the scripts is used (after it has been installed with getInstal.py --path from its install directory). The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
+tabSpace indicates how many spaces the ports and parameters should be indented.
+column alignment indicates at which column number the port connections should be aligned for good whitespace formatting.
 
 ## Tests
 
