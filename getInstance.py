@@ -56,6 +56,8 @@ def stripSv(line):
       if(not(("->" in part) or ("<-" in part))):
         newLine = newLine+part
     line = newLine
+  if("//" in line):
+    line,*blah = line.split("//")
   return line
 
 def structureSvInstance(stackedLine, tabSpace, allignCol):
