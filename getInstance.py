@@ -10,6 +10,8 @@ try:
 except ImportError:
   print("pyperclip (>= v1.3) is required for this tool. Please run:\n")
   print("\tpip install pyperclip\n")
+  print("Also please note that on Gnome, xclip is required and on KDE klipper\n")
+  print("is required for pyperclip to work correctly.\n")
   sys.exit()
   
 
