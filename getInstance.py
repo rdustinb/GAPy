@@ -173,7 +173,7 @@ def userParse(fileName, tabSpace, alignCol):
       if("module" in line):
         instanceBeginning = 1
         stackedLine = stripSv(line.strip())
-        if(");" in line):
+        if((")" in line) and not("#" in line)):
           instanceBeginning = 0
           break
       elif(instanceBeginning == 1):
