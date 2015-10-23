@@ -1,6 +1,6 @@
 ## Synopsis
 
-GAPy (pronounced "Gee - Aee - Pie") is an assortment of Python scripts that FPGA developers can use to automate code development and work flow.
+GAPy (pronounced "Gee - Aee - Pie") is an assortment of Python scripts that FPGA developers can use to automate code development and work flow. These tools are Python3-based only and will not support the old Python2 constructs.
 
 ***getInstance.py*** - A script that will parse a user-specified HDL file's port list and parameter list, converting it to a block of code used for instantiation that is accessible from the user's OS Clipboard.
 
