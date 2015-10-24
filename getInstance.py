@@ -25,21 +25,31 @@ except ImportError:
 
 ###################################################
 # SystemVerilog Stripping Function
-def stripSv(line):
+def stripSv(line,portFlag,bits):
   """
     This function removes specific keywords from different lines of an
     SV file.
   """
+  portDict = {
+    1 : "in",
+    2 : "out",
+    3 : "inout"
+  }
+  if("//" in line):
+    line,*blah = line.split("//")
   if("module" in line):
     line = line.replace("module", "")
   if("parameter" in line):
     line = line.replace("parameter", "")
   if("input" in line):
     line = line.replace("input", "")
+    portFlag = 1
   if("output" in line):
     line = line.replace("output", "")
+    portFlag = 2
   if("inout" in line):
     line = line.replace("inout", "")
+    portFlag = 3
   if("reg" in line):
     line = line.replace("reg", "")
   if("wire" in line):
@@ -52,19 +62,42 @@ def stripSv(line):
     line = line.replace("=", ",%")
     line,*blah = line.split("%")
   if("[" in line):
+    # Flag if this is 2D array
+    if(len(line.split(":")) > 2):
+      flag2d = 1
+    else:
+      flag2d = 0
     line = line.replace("[", "%->")
-    line = line.replace("]", "<-%")
+    line = line.replace("]", "%")
     line = line.split("%")
     newLine = ""
     for part in line:
       if(not(("->" in part) or ("<-" in part))):
         newLine = newLine+part
+      else:
+        bits,*blah = part.split(":")
+        *blah,bits = bits.split(">")
     line = newLine
-  if("//" in line):
-    line,*blah = line.split("//")
-  return line
+    if("(" in bits):
+      bits = bits.replace("(", "<")
+      bits = bits.replace(")", ">")
+    if(flag2d == 0):
+      if("," in line):
+        line = line.replace(",", "// %s %s bits,"%(portDict[portFlag],bits))
+      elif(line[-1] == ";"):
+        line = line.replace(");", "// %s %s bits);"%(portDict[portFlag],bits))
+    else:
+      if("," in line):
+        line = line.replace(",", "// %s Multidimensional Bus,"%(portDict[portFlag]))
+      elif(line[-1] == ";"):
+        line = line.replace(");", "// %s Multidimensional Bus);"%(portDict[portFlag]))
+  elif(portFlag != 0):
+    line = line.replace(",", "// %s 1 bit,"%(portDict[portFlag]))
+    if(line[-1] == ";"):
+      line = line.replace(");", "// %s 1 bit);"%(portDict[portFlag]))
+  return line,portFlag,bits
 
-def structureSvInstance(stackedLine, tabSpace, alignCol):
+def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
   """
     This function restructures an input "stacked line" module declaration
     from a .sv file. Expecting a module declaration on one line in the form
@@ -81,11 +114,11 @@ def structureSvInstance(stackedLine, tabSpace, alignCol):
       ...
         .paramN             (paramN)
       )(
-        .port1              (port1),
-        .port2              (port2),
-        .port3              (port3),
+        .port1              (port1),     // in 1 bit
+        .port2              (port2),     // out 3 bits
+        .port3              (port3),     // in Multidimensional Bus
       ...
-        .portN              (portN)
+        .portN              (portN)      // inout 3 bits
       );
 
     or:
@@ -121,19 +154,30 @@ def structureSvInstance(stackedLine, tabSpace, alignCol):
     portList,remainder = remainder.split(")")
     portList = portList.split(",")
     newPorts = ""
+    nextAnnotate = ""
+    afterPortLen = 0
     for ports in portList:
+      # Rip Out the annotation
+      ports,annotate = ports.split("//")
+      annotate = "//"+annotate
       if(newPorts == ""):
         newPorts = (" "*tabSpace)
         newPorts = newPorts+"."+ports
         newPorts = newPorts+(" "*(alignCol-len(ports)))
         newPorts = newPorts+"("+ports+")"
+        afterPortLen = len(ports)+2
       else:
-        newPorts = newPorts+",\n"
+        newPorts = newPorts+(",")
+        newPorts = newPorts+(" "*(alignCom-afterPortLen))
+        newPorts = newPorts+("%s\n"%nextAnnotate)
         newPorts = newPorts+(" "*tabSpace)
         newPorts = newPorts+"."+ports
         newPorts = newPorts+(" "*(alignCol-len(ports)))
         newPorts = newPorts+"("+ports+")"
-    portList = newPorts
+        afterPortLen = len(ports)+2
+      nextAnnotate = annotate
+    portList = newPorts+(" "*(alignCom-afterPortLen+1))
+    portList = portList+("%s"%nextAnnotate)
     newStackedPorts = modName+"\n"+paramList+"\n)(\n"+portList+"\n);"
     stackedLine = newStackedPorts
   else:
@@ -160,7 +204,7 @@ def structureSvInstance(stackedLine, tabSpace, alignCol):
 
 ###################################################
 # User Parse Function
-def userParse(fileName, tabSpace, alignCol):
+def userParse(fileName, tabSpace, alignCol, alignCom):
   """
     Core of the script. Parses the user-specified HDL file and creates an
     instance block to be pasted into another HDL file.
@@ -168,25 +212,29 @@ def userParse(fileName, tabSpace, alignCol):
   """
   instanceBeginning = 0
   stackedLine = ""
+  portFlag = 0
+  bits = 0
   with open(fileName, "r") as fh:
     for line in fh:
       if("module" in line):
         instanceBeginning = 1
-        stackedLine = stripSv(line.strip())
+        stackedLine,portFlag,bits = stripSv(line.strip(),portFlag,bits)
         if((")" in line) and not("#" in line)):
           instanceBeginning = 0
           break
       elif(instanceBeginning == 1):
         if(");" in line):
           instanceBeginning = 0
-          stackedLine = stackedLine+stripSv(line.strip())
+          new_sl,portFlag,bits = stripSv(line.strip(),portFlag,bits)
+          stackedLine = stackedLine+new_sl
           break
         else:
-          stackedLine = stackedLine+stripSv(line.strip())
+          new_sl,portFlag,bits = stripSv(line.strip(),portFlag,bits)
+          stackedLine = stackedLine+new_sl
   # Final String Tweaks
   if(",)" in stackedLine):
     stackedLine = stackedLine.replace(",)", ")")
-  stackedLine = structureSvInstance(stackedLine,tabSpace,alignCol)
+  stackedLine = structureSvInstance(stackedLine,tabSpace,alignCol,alignCom)
   pyperclip.copy(stackedLine)
   #print(stackedLine)
 
@@ -211,7 +259,7 @@ def testParse():
 
   for fileName in svFileList:
     print("\n\nTesting variation: %s"%fileName)
-    userParse(fileName, 2, 32)
+    userParse(fileName, 2, 32, 10)
 
 ###################################################
 # Get the input from the terminal
@@ -220,7 +268,7 @@ try:
   if(args == [] and opts == []):
     print("No options entered. Please execute using the following")
     print("format:\n")
-    print("  ./getInstance.py path/to/file.sv <tabSpace> <column alignment>")
+    print("  ./getInstance.py path/to/file.sv <tabSpace> <column align> <comment align>")
   else:
     #print("The following arguments were used: %s"%(args))
     #print("The following options were used: %s"%(opts))
@@ -240,7 +288,7 @@ try:
         elif(shellPath == "/bin/csh"):
           aliasFile.write("alias getInstance 'python3 %s/getInstance.py'"%(thisScriptPath))
     else:
-      userParse(opts[0], int(opts[1]), int(opts[2]))
+      userParse(opts[0], int(opts[1]), int(opts[2]), int(opts[3]))
 except getopt.error:
   print("That option is not supported.")
 
