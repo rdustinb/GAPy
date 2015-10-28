@@ -34,14 +34,31 @@ The tools in this repository depend on the following Python Libraries:
 
 ## Code Example
 
-`getInstance path/to/hdl/file.sv <tabSpace> <column alignment>`
+`getInstance path/to/hdl/file.sv <tabSpace> <column align> <comment align>`
+
+Where each option performs the following spacing:
+
+```Verilog
+module_name #(
+                .BUSWIDTH                  (BUSWIDTH),
+<--tabSpace-->  .RSTPOL <--column align--> (RSTPOL),
+                ...
+                .MAGIC                     (MAGIC)
+) module_name_0 (
+                .clk                       (clk),                          // in [1]
+<--tabSpace-->  .ben    <--column align--> (ben),      <--comment align--> // in [15:0]
+                ...
+                .active                    (portN-1),                      // inout [1]
+                .dout                      (portN)                         // out [3:0]
+);
+```
 
 This is how the scripts is used (after it has been installed with getInstal.py --path from its install directory). The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
 tabSpace indicates how many spaces the ports and parameters should be indented.
 column alignment indicates at which column number the port connections should be aligned for good whitespace formatting.
 I personally use the following command:
 
-`getInstance path/to/hdl/file.sv 2 25`
+`getInstance path/to/hdl/file.sv 2 25 15`
 
 ## Tests
 
