@@ -48,8 +48,8 @@ module_name #(
                 .clk                       (clk),                          // in [1]
 <--tabSpace-->  .ben    <--column align--> (ben),      <--comment align--> // in [15:0]
                 ...
-                .active                    (portN-1),                      // inout [1]
-                .dout                      (portN)                         // out [3:0]
+                .active                    (active),                       // inout [1]
+                .dout                      (dout)                          // out [3:0]
 );
 ```
 
