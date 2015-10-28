@@ -62,39 +62,23 @@ def stripSv(line,portFlag,bits):
     line = line.replace("=", ",%")
     line,*blah = line.split("%")
   if("[" in line):
-    # Flag if this is 2D array
-    if(len(line.split(":")) > 2):
-      flag2d = 1
-    else:
-      flag2d = 0
-    line = line.replace("[", "%->")
+    line = line.replace("[", "%")
     line = line.replace("]", "%")
     line = line.split("%")
     newLine = ""
+    newannotate = ("// %s "%(portDict[portFlag]))
     for part in line:
-      if(not(("->" in part) or ("<-" in part))):
+      if(not(":" in part)):
+        if("," in part):
+          part = part.replace(",","")
         newLine = newLine+part
       else:
-        bits,*blah = part.split(":")
-        *blah,bits = bits.split(">")
-    line = newLine
-    if("(" in bits):
-      bits = bits.replace("(", "<")
-      bits = bits.replace(")", ">")
-    if(flag2d == 0):
-      if("," in line):
-        line = line.replace(",", "// %s %s bits,"%(portDict[portFlag],bits))
-      elif(line[-1] == ";"):
-        line = line.replace(");", "// %s %s bits);"%(portDict[portFlag],bits))
-    else:
-      if("," in line):
-        line = line.replace(",", "// %s Multidimensional Bus,"%(portDict[portFlag]))
-      elif(line[-1] == ";"):
-        line = line.replace(");", "// %s Multidimensional Bus);"%(portDict[portFlag]))
+        newannotate += ("[%s]"%(part))
+    line = newLine+newannotate+","
   elif(portFlag != 0):
-    line = line.replace(",", "// %s 1 bit,"%(portDict[portFlag]))
-    if(line[-1] == ";"):
-      line = line.replace(");", "// %s 1 bit);"%(portDict[portFlag]))
+    line = line.replace(",", "// %s [1],"%(portDict[portFlag]))
+    if(";" in line):
+      line = line.replace(");", "// %s [1]);"%(portDict[portFlag]))
   return line,portFlag,bits
 
 def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
@@ -134,7 +118,6 @@ def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
   # There are parameters in this module
   if("#" in stackedLine):
     modName,remainder = stackedLine.split("#(")
-    modName = modName+" "+modName+"_0 #("
     paramList,remainder = remainder.split(")(")
     paramList = paramList.split(",")
     newParams = ""
@@ -178,7 +161,7 @@ def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
       nextAnnotate = annotate
     portList = newPorts+(" "*(alignCom-afterPortLen+1))
     portList = portList+("%s"%nextAnnotate)
-    newStackedPorts = modName+"\n"+paramList+"\n)(\n"+portList+"\n);"
+    newStackedPorts = modName+" #(\n"+paramList+"\n) "+modName+"_0 (\n"+portList+"\n);"
     stackedLine = newStackedPorts
   else:
     modName,remainder = stackedLine.split("(")
@@ -265,8 +248,8 @@ def testParse():
 # Get the input from the terminal
 try:
   args, opts = getopt.getopt(sys.argv[1:], "", ["test","path"])
-  if(args == [] and opts == []):
-    print("No options entered. Please execute using the following")
+  if(args == [] and opts == [] or len(opts) != 4):
+    print("Invalid number of options entered. Please execute using the following")
     print("format:\n")
     print("  ./getInstance.py path/to/file.sv <tabSpace> <column align> <comment align>")
   else:
@@ -291,5 +274,3 @@ try:
       userParse(opts[0], int(opts[1]), int(opts[2]), int(opts[3]))
 except getopt.error:
   print("That option is not supported.")
-
-
