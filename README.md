@@ -52,13 +52,15 @@ module_name #(
                 .dout                      (dout)                          // out [3:0]
 );
 ```
-
-This is how the scripts is used (after it has been installed with getInstal.py --path from its install directory). The port list is now simply available to paste wherever the designer wishes (email, code file, document, etc).
-tabSpace indicates how many spaces the ports and parameters should be indented.
-column alignment indicates at which column number the port connections should be aligned for good whitespace formatting.
 I personally use the following command:
 
 `getInstance path/to/hdl/file.sv 2 25 15`
+
+Both the <column align> and <comment align> options begin counting columns at the port-name-dot `.` and the port-connect-opening-parentheses `(`. The three options are additive to an absolute column number. For instance, if the options `2 25 15` are specified, the comments of the ports will begin on column 42 when the instance is pasted into the containing document or code file.
+
+The script location can be installed onto the users $PATH variable with:
+
+`getInstance.py --path`
 
 ## Tests
 
