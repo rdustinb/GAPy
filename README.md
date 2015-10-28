@@ -58,10 +58,6 @@ I personally use the following command:
 
 Both the <column align> and <comment align> options begin counting columns at the port-name-dot `.` and the port-connect-opening-parentheses `(`. The three options are additive to an absolute column number. For instance, if the options `2 25 15` are specified, the comments of the ports will begin on column 42 when the instance is pasted into the containing document or code file.
 
-The script location can be installed onto the users $PATH variable with:
-
-`getInstance.py --path`
-
 ## Tests
 
 Running any of the scripts with the --test option will cause the script to run using the example code in the tests/ folder.
