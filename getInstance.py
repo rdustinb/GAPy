@@ -25,23 +25,23 @@ except ImportError:
 
 ###################################################
 # This function creates a formatted instance based on the user input
-def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
+def structureSvInstance(stackedModule, tabSpace, alignCol, alignCom):
   """
     This function restructures an input "stacked line" module declaration
     from a .sv file. Expecting a module declaration on one line in the form
     of:
-      blockName#(param1,param2,param3,...)(port1,port2,port3,...)
+      blockName~#(,param1,param2,param3,...,)(,port1,port2,port3,...,);
     or:
-      blockName(port1,port2,port3,...)
+      blockName~(port1,port2,port3,...,);
 
     It will return a string of the form:
-      blockName blockName_0 #(
+      blockName #(
         .param1             (param1),
         .param2             (param2),
         .param3             (param3),
       ...
         .paramN             (paramN)
-      )(
+      ) blockName_0 (
         .port1              (port1),     // in 1 bit
         .port2              (port2),     // out 3 bits
         .port3              (port3),     // in Multidimensional Bus
@@ -58,6 +58,24 @@ def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
         .portN              (portN)
       );
   """
+  formattedModule = ""
+  stackedModuleList = stackedModule.split(",")
+  for line in stackedModuleList:
+    if(("~(" not in line) and ("~#(" not in line) and (");" not in line)):
+      if("//" in line):
+        (port,comment) = line.split("//")
+        line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+"),"
+        line = line+(" "*(alignCom-(len(port)+3)))+"//"+comment
+        line = line.replace("~", " ")
+      else:
+        port = line
+        line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+"),"
+        line = line.replace("~", " ")
+      formattedModule = formattedModule+line+"\n"
+    else:
+      line = line.replace("~", " ")
+      formattedModule = formattedModule+line+"\n"
+  return formattedModule
 
 ###################################################
 # This function creates a formatted instance based on the user input
@@ -80,6 +98,7 @@ def yankSvModule(fileName):
   paramport1RegEx = re.compile("^\s*\)\s*\(")
   paramport2RegEx = re.compile("\s*\)\s*\(")
   modendRegEx = re.compile("\);")
+  emptyRegEx = re.compile("^\s*$")
   with open(fileName, "r") as fh:
     for line in fh:
       """
@@ -90,6 +109,9 @@ def yankSvModule(fileName):
         This script will not support stupid syntax and bad coding that looks
         like shit. Properly format your code or this won't work.
       """
+      # Skip Empty Lines
+      if(emptyRegEx.match(line)):
+        continue
       # Rip out any comments
       if("//" in line):
         line,*blah = line.split("//")
@@ -110,14 +132,14 @@ def yankSvModule(fileName):
         moduleName = moduleName.replace("module"," ")
         moduleName = moduleName.strip()
         instanceName = moduleName+"_0"
-        stackedModule = moduleName+" #("
+        stackedModule = moduleName+"~#(,"
         mode = "params"
       # Parsing Parameters
       elif(mode == "params"):
         # Check for parameter-port boundary-only line
         if(paramport1RegEx.match(line)):
           mode = "ports"
-          stackedModule = stackedModule[:-1]+") "+instanceName+" ("
+          stackedModule = stackedModule+")~"+instanceName+"~(,"
           continue
         elif(paramport2RegEx.match(line)):
           mode = "ports"
@@ -128,7 +150,7 @@ def yankSvModule(fileName):
             line,*blah = line.split("=")
           line = line.replace(","," ")
           line = line.strip()
-          stackedModule = stackedModule+line+") "+instanceName+" ("
+          stackedModule = stackedModule+line+")~"+instanceName+"~(,"
         else:
           # Handle Input Ports
           if(parameterRegEx.match(line)):
@@ -158,10 +180,10 @@ def yankSvModule(fileName):
         # If we just switched from params
         if(mode == "params"):
           mode = "ports"
-          stackedModule = stackedModule[:-1]+") "+instanceName+" ("
+          stackedModule = stackedModule[:-1]+")~"+instanceName+"~("
         elif(mode == "module"):
           mode = "ports"
-          stackedModule = moduleName+"_0 ("
+          stackedModule = moduleName+"_0~("
         line = re.sub(outputRegEx,"",line)
         line = line.strip()
         line = line.replace("reg","")
@@ -191,24 +213,24 @@ def yankSvModule(fileName):
             portName = ""
             portWidths = ""
             for field in fields:
-              if(":" not in field):
+              if((":" not in field) and (field != "")):
                 portName = field
-              else:
+              elif(field != ""):
                 end,start = field.split(":")
                 if(end.isdigit()):
                   end = str(int(end) + 1)
-                portWidths = portWidths+end+"~"
-            portWidths = portWidths[:-1]
+                portWidths = portWidths+end+"~x~"
+            portWidths = portWidths[:-3]
             stackedModule = stackedModule+portName+"//~"+portDir+"~"
             stackedModule = stackedModule+portWidths+"~bits,"
           else:
             stackedModule = stackedModule+line+"//~"+portDir+"~1~bit,"
         # If this line contains the module declaration characters, break
         if(");" in stackedModule):
-          stackedModule = stackedModule[:-1].replace(");","")
+          stackedModule = stackedModule.replace(");","")
+          stackedModule = stackedModule+");"
           break;
-  print(stackedModule)
-  print(moduleName)
+  return stackedModule
 
 ###################################################
 # User Parse Function
@@ -222,9 +244,8 @@ def userParse(fileName, tabSpace, alignCol, alignCom):
   stackedLine = ""
   portFlag = 0
   bits = 0
-  yankSvModule(fileName)
   # Copy Instance to Clipboard
-  pyperclip.copy(stackedLine)
+  pyperclip.copy(structureSvInstance(yankSvModule(fileName),tabSpace,alignCol,alignCom))
 
 ###################################################
 # Test Parse Function
