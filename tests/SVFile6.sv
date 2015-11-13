@@ -3,7 +3,7 @@
 module SVFile6(
   input clk, reset,
   output [31:0] addr,
-  output [$clog2(PARAM)-1:0] valid,
+  output [2:0] valid,
   output [63:0]               data,
   output              wen, ren,
   input               ready

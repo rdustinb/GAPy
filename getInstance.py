@@ -4,6 +4,7 @@ import getopt
 import sys
 from os import getcwd
 from os import getenv
+import re
 
 try:
   import pyperclip
@@ -13,7 +14,6 @@ except ImportError:
   print("Also please note that on Gnome, xclip is required and on KDE klipper\n")
   print("is required for pyperclip to work correctly.\n")
   sys.exit()
-  
 
 """
   The purpose of this script is to provide a quick pasteable instance
@@ -24,79 +24,7 @@ except ImportError:
 """
 
 ###################################################
-# SystemVerilog Stripping Function
-def stripSv(line,portFlag,bits):
-  """
-    This function removes specific keywords from different lines of an
-    SV file.
-  """
-  portDict = {
-    1 : "in",
-    2 : "out",
-    3 : "inout"
-  }
-  if("//" in line):
-    line,*blah = line.split("//")
-  if("module" in line):
-    line = line.replace("module", "")
-  if("parameter" in line):
-    line = line.replace("parameter", "")
-  if("input" in line):
-    line = line.replace("input", "")
-    portFlag = 1
-  if("output" in line):
-    line = line.replace("output", "")
-    portFlag = 2
-  if("inout" in line):
-    line = line.replace("inout", "")
-    portFlag = 3
-  if("reg" in line):
-    line = line.replace("reg", "")
-  if("wire" in line):
-    line = line.replace("wire", "")
-  if("logic" in line):
-    line = line.replace("logic", "")
-  if(" " in line):
-    line = line.replace(" ", "")
-  if("=" in line):
-    line = line.replace("=", ",%")
-    line,*blah = line.split("%")
-  if("[" in line):
-    # Flag if this is 2D array
-    if(len(line.split(":")) > 2):
-      flag2d = 1
-    else:
-      flag2d = 0
-    line = line.replace("[", "%->")
-    line = line.replace("]", "%")
-    line = line.split("%")
-    newLine = ""
-    for part in line:
-      if(not(("->" in part) or ("<-" in part))):
-        newLine = newLine+part
-      else:
-        bits,*blah = part.split(":")
-        *blah,bits = bits.split(">")
-    line = newLine
-    if("(" in bits):
-      bits = bits.replace("(", "<")
-      bits = bits.replace(")", ">")
-    if(flag2d == 0):
-      if("," in line):
-        line = line.replace(",", "// %s %s bits,"%(portDict[portFlag],bits))
-      elif(line[-1] == ";"):
-        line = line.replace(");", "// %s %s bits);"%(portDict[portFlag],bits))
-    else:
-      if("," in line):
-        line = line.replace(",", "// %s Multidimensional Bus,"%(portDict[portFlag]))
-      elif(line[-1] == ";"):
-        line = line.replace(");", "// %s Multidimensional Bus);"%(portDict[portFlag]))
-  elif(portFlag != 0):
-    line = line.replace(",", "// %s 1 bit,"%(portDict[portFlag]))
-    if(line[-1] == ";"):
-      line = line.replace(");", "// %s 1 bit);"%(portDict[portFlag]))
-  return line,portFlag,bits
-
+# This function creates a formatted instance based on the user input
 def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
   """
     This function restructures an input "stacked line" module declaration
@@ -130,77 +58,157 @@ def structureSvInstance(stackedLine, tabSpace, alignCol, alignCom):
         .portN              (portN)
       );
   """
-  newStackedPorts = ""
-  # There are parameters in this module
-  if("#" in stackedLine):
-    modName,remainder = stackedLine.split("#(")
-    modName = modName+" "+modName+"_0 #("
-    paramList,remainder = remainder.split(")(")
-    paramList = paramList.split(",")
-    newParams = ""
-    for param in paramList:
-      if(newParams == ""):
-        newParams = (" "*tabSpace)
-        newParams = newParams+"."+param
-        newParams = newParams+(" "*(alignCol-len(param)))
-        newParams = newParams+"("+param+")"
-      else:
-        newParams = newParams+",\n"
-        newParams = newParams+(" "*tabSpace)
-        newParams = newParams+"."+param
-        newParams = newParams+(" "*(alignCol-len(param)))
-        newParams = newParams+"("+param+")"
-    paramList = newParams
-    portList,remainder = remainder.split(")")
-    portList = portList.split(",")
-    newPorts = ""
-    nextAnnotate = ""
-    afterPortLen = 0
-    for ports in portList:
-      # Rip Out the annotation
-      ports,annotate = ports.split("//")
-      annotate = "//"+annotate
-      if(newPorts == ""):
-        newPorts = (" "*tabSpace)
-        newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(alignCol-len(ports)))
-        newPorts = newPorts+"("+ports+")"
-        afterPortLen = len(ports)+2
-      else:
-        newPorts = newPorts+(",")
-        newPorts = newPorts+(" "*(alignCom-afterPortLen))
-        newPorts = newPorts+("%s\n"%nextAnnotate)
-        newPorts = newPorts+(" "*tabSpace)
-        newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(alignCol-len(ports)))
-        newPorts = newPorts+"("+ports+")"
-        afterPortLen = len(ports)+2
-      nextAnnotate = annotate
-    portList = newPorts+(" "*(alignCom-afterPortLen+1))
-    portList = portList+("%s"%nextAnnotate)
-    newStackedPorts = modName+"\n"+paramList+"\n)(\n"+portList+"\n);"
-    stackedLine = newStackedPorts
-  else:
-    modName,remainder = stackedLine.split("(")
-    modName = modName+" "+modName+"_0 ("
-    portList,remainder = remainder.split(")")
-    portList = portList.split(",")
-    newPorts = ""
-    for ports in portList:
-      if(newPorts == ""):
-        newPorts = (" "*tabSpace)
-        newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(alignCol-len(ports)))
-        newPorts = newPorts+"("+ports+")"
-      else:
-        newPorts = newPorts+",\n"
-        newPorts = newPorts+(" "*tabSpace)
-        newPorts = newPorts+"."+ports
-        newPorts = newPorts+(" "*(alignCol-len(ports)))
-        newPorts = newPorts+"("+ports+")"
-    portList = newPorts
-    newStackedPorts = modName+"\n"+portList+"\n);"
-  return newStackedPorts
+
+###################################################
+# This function creates a formatted instance based on the user input
+def yankSvModule(fileName):
+  """
+    The purpose of this function is to pull out the full module declaration
+    in an SV file and return it as a single line without whitespace
+  """
+  stackedModule = ""
+  moduleName = ""
+  instanceName = ""
+  mode = "start"
+  portDir = ""
+  inModule = 0
+  parameterRegEx = re.compile("^\s*parameter")
+  inputRegEx = re.compile("^\s*input")
+  outputRegEx = re.compile("^\s*output")
+  inoutRegEx = re.compile("^\s*inout")
+  closeRegEx = re.compile("^\s*\);")
+  paramport1RegEx = re.compile("^\s*\)\s*\(")
+  paramport2RegEx = re.compile("\s*\)\s*\(")
+  modendRegEx = re.compile("\);")
+  with open(fileName, "r") as fh:
+    for line in fh:
+      """
+        There are two ways that a module can be declared in SystemVerilog:
+          1) Module on one line (V95 Syntax).
+          2) Module on multiple lines.
+
+        This script will not support stupid syntax and bad coding that looks
+        like shit. Properly format your code or this won't work.
+      """
+      # Rip out any comments
+      if("//" in line):
+        line,*blah = line.split("//")
+      # This is somewhat bad coding, module declaration on one line
+      if(("module" in line) and (");" in line)):
+        pass
+      elif(("module" in line) and not("#" in line) and not(");" in line)):
+        moduleName = line.replace("("," ")
+        moduleName = moduleName.replace("module"," ")
+        moduleName = moduleName.strip()
+        instanceName = moduleName+"_0"
+        stackedModule = moduleName+" "+instanceName+" ("
+        mode = "ports"
+      # This is the best coding style, module declaration is on its own line
+      elif(("module" in line) and ("#" in line) and not(");" in line)):
+        moduleName = line.replace("#"," ")
+        moduleName = moduleName.replace("("," ")
+        moduleName = moduleName.replace("module"," ")
+        moduleName = moduleName.strip()
+        instanceName = moduleName+"_0"
+        stackedModule = moduleName+" #("
+        mode = "params"
+      # Parsing Parameters
+      elif(mode == "params"):
+        # Check for parameter-port boundary-only line
+        if(paramport1RegEx.match(line)):
+          mode = "ports"
+          stackedModule = stackedModule[:-1]+") "+instanceName+" ("
+          continue
+        elif(paramport2RegEx.match(line)):
+          mode = "ports"
+          # Handle Input Ports
+          if(parameterRegEx.match(line)):
+            line = re.sub(parameterRegEx,"",line)
+          if("=" in line):
+            line,*blah = line.split("=")
+          line = line.replace(","," ")
+          line = line.strip()
+          stackedModule = stackedModule+line+") "+instanceName+" ("
+        else:
+          # Handle Input Ports
+          if(parameterRegEx.match(line)):
+            line = re.sub(parameterRegEx,"",line)
+          if("=" in line):
+            line,blah = line.split("=")
+          line = line.replace(","," ")
+          line = line.strip()
+          stackedModule = stackedModule+line+","
+      # Parsing Ports
+      elif(mode == "ports"):
+        # Check for module declaration ending-only line
+        if(closeRegEx.match(line)):
+          break
+        # Handle Input Ports
+        if(inputRegEx.match(line)):
+          portDir = "input"
+          line = re.sub(inputRegEx,"",line)
+        # Handle Output Ports
+        elif(outputRegEx.match(line)):
+          portDir = "output"
+          line = re.sub(outputRegEx,"",line)
+        # Handle Inout Ports
+        elif(inoutRegEx.match(line)):
+          portDir = "inout"
+          line = re.sub(inoutRegEx,"",line)
+        # If we just switched from params
+        if(mode == "params"):
+          mode = "ports"
+          stackedModule = stackedModule[:-1]+") "+instanceName+" ("
+        elif(mode == "module"):
+          mode = "ports"
+          stackedModule = moduleName+"_0 ("
+        line = re.sub(outputRegEx,"",line)
+        line = line.strip()
+        line = line.replace("reg","")
+        if(line.count(",") > 1):
+          line = line.split(",")
+          for sline in line:
+            if(sline == ""):
+              continue
+            else:
+              sline = sline.replace(",","")
+              sline = sline.replace(" ","")
+              # Check for bus or single bit
+              if("[" in sline):
+                # Split on left brackets
+                pass
+              else:
+                stackedModule = stackedModule+sline+"//~"+portDir+"~1~bit,"
+        else:
+          line = line.replace(",","")
+          line = line.replace(" ","")
+           # Check for bus or single bit
+          if("[" in line):
+            line = line.replace("][","~")
+            line = line.replace("]","~")
+            line = line.replace("[","~")
+            fields = line.split("~")
+            portName = ""
+            portWidths = ""
+            for field in fields:
+              if(":" not in field):
+                portName = field
+              else:
+                end,start = field.split(":")
+                if(end.isdigit()):
+                  end = str(int(end) + 1)
+                portWidths = portWidths+end+"~"
+            portWidths = portWidths[:-1]
+            stackedModule = stackedModule+portName+"//~"+portDir+"~"
+            stackedModule = stackedModule+portWidths+"~bits,"
+          else:
+            stackedModule = stackedModule+line+"//~"+portDir+"~1~bit,"
+        # If this line contains the module declaration characters, break
+        if(");" in stackedModule):
+          stackedModule = stackedModule[:-1].replace(");","")
+          break;
+  print(stackedModule)
+  print(moduleName)
 
 ###################################################
 # User Parse Function
@@ -214,29 +222,9 @@ def userParse(fileName, tabSpace, alignCol, alignCom):
   stackedLine = ""
   portFlag = 0
   bits = 0
-  with open(fileName, "r") as fh:
-    for line in fh:
-      if("module" in line):
-        instanceBeginning = 1
-        stackedLine,portFlag,bits = stripSv(line.strip(),portFlag,bits)
-        if((")" in line) and not("#" in line)):
-          instanceBeginning = 0
-          break
-      elif(instanceBeginning == 1):
-        if(");" in line):
-          instanceBeginning = 0
-          new_sl,portFlag,bits = stripSv(line.strip(),portFlag,bits)
-          stackedLine = stackedLine+new_sl
-          break
-        else:
-          new_sl,portFlag,bits = stripSv(line.strip(),portFlag,bits)
-          stackedLine = stackedLine+new_sl
-  # Final String Tweaks
-  if(",)" in stackedLine):
-    stackedLine = stackedLine.replace(",)", ")")
-  stackedLine = structureSvInstance(stackedLine,tabSpace,alignCol,alignCom)
+  yankSvModule(fileName)
+  # Copy Instance to Clipboard
   pyperclip.copy(stackedLine)
-  #print(stackedLine)
 
 ###################################################
 # Test Parse Function
@@ -259,14 +247,13 @@ def testParse():
 
   for fileName in svFileList:
     print("\n\nTesting variation: %s"%fileName)
-    userParse(fileName, 2, 32, 10)
 
 ###################################################
 # Get the input from the terminal
 try:
   args, opts = getopt.getopt(sys.argv[1:], "", ["test","path"])
-  if(args == [] and opts == []):
-    print("No options entered. Please execute using the following")
+  if(args == [] and opts == [] or len(opts) != 4):
+    print("Invalid number of options entered. Please execute using the following")
     print("format:\n")
     print("  ./getInstance.py path/to/file.sv <tabSpace> <column align> <comment align>")
   else:
@@ -291,5 +278,4 @@ try:
       userParse(opts[0], int(opts[1]), int(opts[2]), int(opts[3]))
 except getopt.error:
   print("That option is not supported.")
-
 
