@@ -90,6 +90,7 @@ def yankSvModule(fileName):
   mode = "start"
   portDir = ""
   inModule = 0
+  multiLineParam = 0;
   parameterRegEx = re.compile("^\s*parameter")
   inputRegEx = re.compile("^\s*input")
   outputRegEx = re.compile("^\s*output")
@@ -136,8 +137,12 @@ def yankSvModule(fileName):
         mode = "params"
       # Parsing Parameters
       elif(mode == "params"):
+        # Ignore extra lines in the Multi-Line Parameters
+        if(multiLineParam == 1):
+          if("}" in line):
+            multiLineParam = 0;
         # Check for parameter-port boundary-only line
-        if(paramport1RegEx.match(line)):
+        elif(paramport1RegEx.match(line)):
           mode = "ports"
           stackedModule = stackedModule+")~"+instanceName+"~(,"
           continue
@@ -146,6 +151,8 @@ def yankSvModule(fileName):
           # Handle Input Ports
           if(parameterRegEx.match(line)):
             line = re.sub(parameterRegEx,"",line)
+            if("{" in line and not("}" in line)):
+              multiLineParam = 1;
           if("=" in line):
             line,*blah = line.split("=")
           line = line.replace(","," ")
@@ -155,6 +162,8 @@ def yankSvModule(fileName):
           # Handle Input Ports
           if(parameterRegEx.match(line)):
             line = re.sub(parameterRegEx,"",line)
+            if("{" in line and not("}" in line)):
+              multiLineParam = 1;
           if("=" in line):
             line,blah = line.split("=")
           line = line.replace(","," ")

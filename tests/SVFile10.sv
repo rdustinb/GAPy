@@ -5,7 +5,12 @@ module SVFile10 #(
   parameter PARAM2= 7,
   parameter PARAM3= 6,
   parameter PARAM4= 5,
-  parameter PARAM5= 4
+  parameter PARAM5= 4,
+  parameter PARAM6 = {
+    10,
+    20,
+    25
+  }
 )(
   input clk, reset,
   output [31:0] addr[1:0],
