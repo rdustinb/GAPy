@@ -61,15 +61,25 @@ def structureSvInstance(stackedModule, tabSpace, alignCol, alignCom):
   formattedModule = ""
   stackedModuleList = stackedModule.split(",")
   for line in stackedModuleList:
+    print(line)
     if(("~(" not in line) and ("~#(" not in line) and (");" not in line)):
       if("//" in line):
         (port,comment) = line.split("//")
-        line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+"),"
-        line = line+(" "*(alignCom-(len(port)+3)))+"//"+comment
+        if("|" in comment):
+          comment = comment.replace("|", "")
+          line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+")"
+          line = line+(" "*(alignCom-(len(port)+2)))+"//"+comment
+        else:
+          line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+"),"
+          line = line+(" "*(alignCom-(len(port)+3)))+"//"+comment
         line = line.replace("~", " ")
       else:
         port = line
-        line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+"),"
+        if("|" in port):
+          port = port.replace("|", "")
+          line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+")"
+        else:
+          line = (" "*tabSpace)+"."+port+(" "*(alignCol-len(port)))+"("+port+"),"
         line = line.replace("~", " ")
       formattedModule = formattedModule+line+"\n"
     else:
@@ -144,8 +154,11 @@ def yankSvModule(fileName):
         # Check for parameter-port boundary-only line
         elif(paramport1RegEx.match(line)):
           mode = "ports"
+          stackedModule = stackedModule[:-1]
+          # Special-flag the last parameter
+          stackedModule = stackedModule+"|,"
           stackedModule = stackedModule+")~"+instanceName+"~(,"
-          continue
+        # Check for parameter-port boundary-only line
         elif(paramport2RegEx.match(line)):
           mode = "ports"
           # Handle Input Ports
@@ -186,13 +199,6 @@ def yankSvModule(fileName):
         elif(inoutRegEx.match(line)):
           portDir = "inout"
           line = re.sub(inoutRegEx,"",line)
-        # If we just switched from params
-        if(mode == "params"):
-          mode = "ports"
-          stackedModule = stackedModule[:-1]+")~"+instanceName+"~("
-        elif(mode == "module"):
-          mode = "ports"
-          stackedModule = moduleName+"_0~("
         line = re.sub(outputRegEx,"",line)
         line = line.strip()
         line = line.replace("reg","")
@@ -237,6 +243,9 @@ def yankSvModule(fileName):
         # If this line contains the module declaration characters, break
         if(");" in stackedModule):
           stackedModule = stackedModule.replace(");","")
+          stackedModule = stackedModule[:-1]
+          # Special-flag the last parameter
+          stackedModule = stackedModule+"|,"
           stackedModule = stackedModule+");"
           break;
   return stackedModule
