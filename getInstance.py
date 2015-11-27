@@ -109,8 +109,9 @@ def yankSvModule(fileName):
   paramport1RegEx = re.compile("^\s*\)\s*\(\s*$")
   paramport2RegEx = re.compile("\s*\)\s*\(\s*$")
   param1RegEx = re.compile("\s*\)\s*$")
+  param2RegEx = re.compile("\)\s*$")
   port1RegEx = re.compile("^\s*\(\s*$")
-  paramendonlyRegEx = re.compile("^\s*\}\s*$")
+  paramendonlyRegEx = re.compile("^\s*\},?\s*$")
   paramend1RegEx = re.compile("^\s*\}\s*\)\s*$")
   modendRegEx = re.compile("\);")
   emptyRegEx = re.compile("^\s*$")
@@ -159,8 +160,7 @@ def yankSvModule(fileName):
               continue
         if(multiLineParam == 0):
           # Check for parameter-port boundary-only line
-          if(paramport1RegEx.match(line) or param1RegEx.match(line) or \
-          paramend1RegEx.match(line)):
+          if(paramport1RegEx.match(line) or param1RegEx.match(line) or paramend1RegEx.match(line)):
             if(paramport2RegEx.match(line)):
               mode = "ports"
             elif(param1RegEx.match(line) or paramend1RegEx.match(line)):
@@ -183,16 +183,26 @@ def yankSvModule(fileName):
             line = line.strip()
             stackedModule = stackedModule+line+")~"+instanceName+"~(,"
           else:
+            modLine = line
+            # Handle parameter-port boundary at the end of a parameter line
+            if(param2RegEx.search(line)):
+              mode = "paramportfind"
             # Handle Input Ports
-            if(parameterRegEx.match(line)):
-              line = re.sub(parameterRegEx,"",line)
-              if("{" in line and not("}" in line)):
+            if(parameterRegEx.match(modLine)):
+              modLine = re.sub(parameterRegEx,"",modLine)
+              if("{" in modLine and not("}" in modLine)):
                 multiLineParam = 1;
-            if("=" in line):
-              line,blah = line.split("=")
-            line = line.replace(","," ")
-            line = line.strip()
-            stackedModule = stackedModule+line+","
+            if("=" in modLine):
+              modLine,blah = modLine.split("=")
+            modLine = modLine.replace(","," ")
+            modLine = modLine.strip()
+            if(mode == "params"):
+              stackedModule = stackedModule+modLine+","
+            else:
+              # Special-flag the last parameter
+              stackedModule = stackedModule+modLine
+              stackedModule = stackedModule+"|,"
+              stackedModule = stackedModule+")~"+instanceName+"~(,"
       # In between Parameter and Port
       elif(mode == "paramportfind"):
         if(port1RegEx.match(line)):
