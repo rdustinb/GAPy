@@ -66,20 +66,9 @@ Both the <column align> and <comment align> options begin counting columns at th
 
 ```
 $ python3 synthesis_parser.py
-
-Please enter synthesis report to parse:
-<users_srr_file>.srr
-
-What data do you want to display?
-	Count of total warnings                [warn_total]
-	Count of warnings by file              [warn_count]
-	List of warnings by file               [warn_list]
-	List of counter overflows by file      [warn_ovflw]
-	List of warnings pertaining to IO      [warn_inout]
-	Quit script....                        [quit]
 ```
 
-Use the relative path to the .srr file for <users_srr_file>. Then use the respective terminal menu entries to navigate the script.
+The script currently only dumps data to the terminal. Change the selectedBlockName line from "all" to the full hdl filename to limit the printout.
 
 ## Tests
 
