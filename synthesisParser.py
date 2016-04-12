@@ -65,8 +65,7 @@ for line in lineDict["7"]:
   --------------------------------------------------------------
 """
 
-selectedBlockName = "pkt_arb.sv"
-# selectedBlockName = "all"
+selectedBlockName = "all"
 
 # Print warning counts by block
 print("\n\n")
