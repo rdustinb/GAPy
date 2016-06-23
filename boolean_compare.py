@@ -66,14 +66,32 @@ def pair_result(maxValue):
     z = eq1(x_vect)
     yield x, y, z
 
-def xor(a,b):
+def xor(*store):
   '''
-    Quick definition of a boolean XOR operation, provides easier readability
-    for equation building.
+  Description
+    Dynamic XOR function for boolean algebra. It is a recursive call that
+    the user may input any number of 1s and/or 0s.
+  
+  Usage
+    xor(<bit n>, <bit n-1>, ... , <bit 2>, <bit 1>, <bit 0>)
+  
+  Example
+    xor(1, 0, 1, 0, 0, 1)
+    This would represent the binary number: b101001
+    Or the hexidecimal number: 0x29
+  
+  Returns
+    Boolean
+  '''
+  if(len(store) == 2):
+    b = store[0]
+    a = store[1]
+    return bool((a or b) and not(a and b))
+  else:
+    b = store[0]
+    remaining = store[1:]
+    return bool((xor(*remaining) or b) and not(xor(*remaining) and b))
 
-    Currently Doesn't work as intended
-  '''
-  return bool((a and not b) or (not a and b))
 
 # Example 32-bit Boolean
 start_time = time.time()
