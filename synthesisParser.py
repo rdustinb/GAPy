@@ -4,7 +4,7 @@ lineDict = dict()
   These blocks parse all the warnings out of the synthesis report
   and assign them to a dictionary entry by block.
 """
-with open("hstc_top.srr") as text:
+with open("sentinel_rtax.srr") as text:
   for line in text:
     line = line.strip()
     if(line.find(":") != -1):
@@ -65,7 +65,7 @@ for line in lineDict["7"]:
   --------------------------------------------------------------
 """
 
-selectedBlockName = "all"
+selectedBlockName = "all"
 
 # Print warning counts by block
 print("\n\n")
@@ -146,12 +146,18 @@ print("\n\n")
 print("*"*75)
 print("\t\t\tCounters by HDL File")
 print("*"*75)
-for blockName, blockNoteList in blockNotes.items():
-  if((selectedBlockName is "all") or (blockName == selectedBlockName)):
-    print("- %s -"%(blockName))
-    for note in blockNoteList:
-      if(note.find("Found counter") != -1):
-        print("\t%s"%(note.split(sep="inst ")[1]))
+try:
+  for blockName, blockNoteList in blockNotes.items():
+    if((selectedBlockName is "all") or (blockName == selectedBlockName)):
+      print("- %s -"%(blockName))
+      for note in blockNoteList:
+        if(note.find("Found counter") != -1):
+          if("inst " in note):
+            print("\t%s"%(note.split(sep="inst ")[1]))
+          elif("instance " in note):
+            print("\t%s"%(note.split(sep="instance ")[1]))
+except IndexError:
+  print("Index is invalid in the Counters note.")
 
 # Comparators by HDL File
 print("\n\n")
