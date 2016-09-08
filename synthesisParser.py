@@ -1,10 +1,17 @@
 countDict = dict()
 lineDict = dict()
+
+"""
+  Get the user input for where the SRR file is.
+"""
+print('Enter the path to the .srr file you wish to parse, relative to')
+srr_file = str(input('your current folder:'))
+
 """
   These blocks parse all the warnings out of the synthesis report
   and assign them to a dictionary entry by block.
 """
-with open("sentinel_rtax.srr") as text:
+with open(srr_file) as text:
   for line in text:
     line = line.strip()
     if(line.find(":") != -1):
