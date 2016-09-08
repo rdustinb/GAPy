@@ -1,5 +1,9 @@
-countDict = dict()
-lineDict = dict()
+"""
+  Check for correct Python Version.
+"""
+import sys
+if sys.hexversion < 0x03020000:
+  raise Exception("This tool requires python 3.2 or greater.")
 
 """
   Get the user input for where the SRR file is.
@@ -11,6 +15,9 @@ srr_file = str(input('your current folder:'))
   These blocks parse all the warnings out of the synthesis report
   and assign them to a dictionary entry by block.
 """
+countDict = dict()
+lineDict = dict()
+
 with open(srr_file) as text:
   for line in text:
     line = line.strip()
