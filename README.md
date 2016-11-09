@@ -44,6 +44,10 @@ The tools in this repository depend on the following Python Libraries:
 
 **time** - Python runtime library needed to time the operations of the boolean_compare. Will be removed in a future commit.
 
+**os** - library used to scan folder hierarchies.
+
+**termcolor** - library that allows text to be colored for printing to the terminal.
+
 ## Code Example
 
 `getInstance path/to/hdl/file.sv <tabSpace> <column align> <comment align>`
@@ -75,6 +79,24 @@ $ python3 synthesis_parser.py
 ```
 
 The script currently only dumps data to the terminal. Change the selectedBlockName line from "all" to the full hdl filename to limit the printout.
+
+```
+$ python3 hdl_comments.py -f path/to/file.[sv|v|vh|vhd]
+
+OR
+
+$ python3 hdl_comments.py -d path/to/directory
+
+OR
+
+$ python3 hdl_comments.py -f path/to/file.sv -i `timescale
+```
+
+This script will count a files comments and calculate the percentage of lines that have comments to total lines in the file.
+
+The **-d** option can be used instead of the -f option, along with a folder location to have the script parse for **all** Verilog and VHDL files in the hierarchy from the specified folder down. The -d option takes presedence over the -f option.
+
+With either -f or -d, the **-i** option can be specified to ignore comment counting up until a keyword is detected in the file. This is useful if all files have a common legal header in the file and you want the script skip over it to then count comments after the header.
 
 ## Tests
 
