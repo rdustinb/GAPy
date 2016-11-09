@@ -8,6 +8,8 @@ GAPy (pronounced "Gee - Aee - Pie") is an assortment of Python scripts that FPGA
 
 ***boolean_compare.py*** - A script that allows a designer to efficiently compare the entire bitfield of two equal-width boolean equations. For now, the equations must reduce to a single bit.
 
+***hdl_comments.py*** - A script will count a files comments and calculate the percentage of lines that have comments to total lines in the file. All flavors of VHDL files will be scanned and have their metrics output to the terminal.
+
 ## Motivation
 
 FPGA development has a lack of automation tools, to say the least. I intend to change that. This repository will contain a list of functions that will make an FPGA developers coding experience faster and more efficient.
@@ -91,8 +93,6 @@ OR
 
 $ python3 hdl_comments.py -f path/to/file.sv -i `timescale
 ```
-
-This script will count a files comments and calculate the percentage of lines that have comments to total lines in the file.
 
 The **-d** option can be used instead of the -f option, along with a folder location to have the script parse for **all** Verilog and VHDL files in the hierarchy from the specified folder down. The -d option takes presedence over the -f option.
 
