@@ -31,7 +31,7 @@ srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterprunes","onlycounters","onlycomparators"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterprunes","onlycounters","onlycomparators","onlyconstraints"])
 except:
   usage()
   sys.exit()
@@ -41,7 +41,7 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterprunes","--onlycounters","--onlycomparators"):
+  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterprunes","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
   elif o == "-i":
@@ -158,12 +158,13 @@ if "--onlyunusedports" in  limited_options or limited_report == 0:
   print("\t\t\tUnused Ports by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
-    if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-      print("- %s -"%(blockName))
-      blockUnusedCount = 0
-      for warning in blockWarnList:
-        if(warning.find("unused") != -1):
-          print("\t%s"%(warning))
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        blockUnusedCount = 0
+        for warning in blockWarnList:
+          if(warning.find("unused") != -1):
+            print("\t%s"%(warning))
 
 if "--onlyundrivenports" in  limited_options or limited_report == 0:
   # Print undriven warnings by block
@@ -172,12 +173,13 @@ if "--onlyundrivenports" in  limited_options or limited_report == 0:
   print("\t\t\tUndriven Ports by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
-    if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-      print("- %s -"%(blockName))
-      blockUnusedCount = 0
-      for warning in blockWarnList:
-        if(warning.find("Undriven") != -1):
-          print("\t%s"%(warning))
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        blockUnusedCount = 0
+        for warning in blockWarnList:
+          if(warning.find("Undriven") != -1):
+            print("\t%s"%(warning))
 
 if "--onlyportwidthmismatches" in  limited_options or limited_report == 0:
   # Print width mismatch warnings by block
@@ -186,12 +188,13 @@ if "--onlyportwidthmismatches" in  limited_options or limited_report == 0:
   print("\t\t\tPort-width Mismatches by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
-    if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-      print("- %s -"%(blockName))
-      blockUnusedCount = 0
-      for warning in blockWarnList:
-        if(warning.find("Port-width mismatch") != -1):
-          print("\t%s"%(warning))
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        blockUnusedCount = 0
+        for warning in blockWarnList:
+          if(warning.find("Port-width mismatch") != -1):
+            print("\t%s"%(warning))
 
 if "--onlysimulationmismatches" in  limited_options or limited_report == 0:
   # Simulation mismatch warnings by block
@@ -200,12 +203,13 @@ if "--onlysimulationmismatches" in  limited_options or limited_report == 0:
   print("\t\t\tSimulation Mismatches by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
-    if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-      print("- %s -"%(blockName))
-      blockUnusedCount = 0
-      for warning in blockWarnList:
-        if(warning.find("simulation mismatch") != -1):
-          print("\t%s"%(warning))
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        blockUnusedCount = 0
+        for warning in blockWarnList:
+          if(warning.find("simulation mismatch") != -1):
+            print("\t%s"%(warning))
 
 if "--onlyregisterprunes" in  limited_options or limited_report == 0:
   # Prune warnings by block
@@ -214,12 +218,13 @@ if "--onlyregisterprunes" in  limited_options or limited_report == 0:
   print("\t\t\tRegister Prunes by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
-    if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-      print("- %s -"%(blockName))
-      blockUnusedCount = 0
-      for warning in blockWarnList:
-        if(warning.find("Pruning") != -1):
-          print("\t%s"%(warning))
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        blockUnusedCount = 0
+        for warning in blockWarnList:
+          if(warning.find("Pruning") != -1):
+            print("\t%s"%(warning))
 
 if "--onlycounters" in  limited_options or limited_report == 0:
   # Counters by HDL File
@@ -229,14 +234,15 @@ if "--onlycounters" in  limited_options or limited_report == 0:
   print("*"*75)
   try:
     for blockName, blockNoteList in blockNotes.items():
-      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for note in blockNoteList:
-          if(note.find("Found counter") != -1):
-            if("inst " in note):
-              print("\t%s"%(note.split(sep="inst ")[1]))
-            elif("instance " in note):
-              print("\t%s"%(note.split(sep="instance ")[1]))
+      if(".sdc" not in blockName):
+        if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+          print("- %s -"%(blockName))
+          for note in blockNoteList:
+            if(note.find("Found counter") != -1):
+              if("inst " in note):
+                print("\t%s"%(note.split(sep="inst ")[1]))
+              elif("instance " in note):
+                print("\t%s"%(note.split(sep="instance ")[1]))
   except IndexError:
     print("Index is invalid in the Counters note.")
 
@@ -247,11 +253,26 @@ if "--onlycomparators" in  limited_options or limited_report == 0:
   print("\t\t\tComparators by HDL File")
   print("*"*75)
   for blockName, blockNoteList in blockNotes.items():
-    if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        for note in blockNoteList:
+          if(note.find("comparator,") != -1):
+            print("\t%s"%(note))
+
+if "--onlyconstraints" in  limited_options or limited_report == 0:
+  # Print unused warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tInvalid Synthesis Constraints")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if((".sdc" in blockName) and (blockName == selectedBlockName)):
       print("- %s -"%(blockName))
-      for note in blockNoteList:
-        if(note.find("comparator,") != -1):
-          print("\t%s"%(note))
+      blockUnusedCount = 0
+      for warning in blockWarnList:
+        if(warning.find("not found in netlist") != -1):
+          print("\t%s"%(warning))
 
 # Get the split counts
 #for i,v in countDict.items():
