@@ -129,20 +129,25 @@ if "--onlycounts" in  limited_options or limited_report == 0:
   print("\t\t\tWarning Counts by HDL File")
   print("*"*75)
   maxnamesize = 0
+  maxwarncount=0
   fieldindex = 0
   for blockName, blockWarnList in blockWarnings.items():
     if((selectedBlockName == "all") or (blockName == selectedBlockName)):
       if(len(blockName) > maxnamesize):
         maxnamesize = len(blockName)
+      if(len(blockWarnList) > maxwarncount):
+        maxwarncount = len(blockWarnList)
+  maxwarncount = len(str(maxwarncount))
   maxnamesize += 2
   for blockName, blockWarnList in blockWarnings.items():
     if((selectedBlockName == "all") or (blockName == selectedBlockName)):
       #print(
       sys.stdout.write(
-        '{filename:>{fieldsize}} : {warncount}\t'.format(
+        '{filename:>{filefieldsize}} : {warncount:<{warnfieldsize}}  '.format(
           filename=blockName,
-          fieldsize=maxnamesize,
-          warncount=len(blockWarnList)
+          filefieldsize=maxnamesize,
+          warncount=len(blockWarnList),
+          warnfieldsize=maxwarncount
         )
       )
       if fieldindex == 2:
