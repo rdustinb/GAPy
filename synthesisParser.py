@@ -18,9 +18,11 @@ def usage():
   print("\t--onlyundrivenports")
   print("\t--onlyportwidthmismatches")
   print("\t--onlysimulationmismatches")
+  print("\t--onlyregisterreplicated")
   print("\t--onlyregisterprunes")
   print("\t--onlycounters")
   print("\t--onlycomparators")
+  print("\t--onlyconstraints")
 
 """
   Parse Terminal Arguments with propery flags
@@ -31,7 +33,7 @@ srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterprunes","onlycounters","onlycomparators","onlyconstraints"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterreplicated","onlyregisterprunes","onlycounters","onlycomparators","onlyconstraints"])
 except:
   usage()
   sys.exit()
@@ -41,7 +43,7 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterprunes","--onlycounters","--onlycomparators","--onlyconstraints"):
+  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterreplicated","--onlyregisterprunes","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
   elif o == "-i":
@@ -166,7 +168,6 @@ if "--onlyunusedports" in  limited_options or limited_report == 0:
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
         print("- %s -"%(blockName))
-        blockUnusedCount = 0
         for warning in blockWarnList:
           if(warning.find("unused") != -1):
             print("\t%s"%(warning))
@@ -181,7 +182,6 @@ if "--onlyundrivenports" in  limited_options or limited_report == 0:
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
         print("- %s -"%(blockName))
-        blockUnusedCount = 0
         for warning in blockWarnList:
           if(warning.find("Undriven") != -1):
             print("\t%s"%(warning))
@@ -196,7 +196,6 @@ if "--onlyportwidthmismatches" in  limited_options or limited_report == 0:
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
         print("- %s -"%(blockName))
-        blockUnusedCount = 0
         for warning in blockWarnList:
           if(warning.find("Port-width mismatch") != -1):
             print("\t%s"%(warning))
@@ -211,10 +210,23 @@ if "--onlysimulationmismatches" in  limited_options or limited_report == 0:
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
         print("- %s -"%(blockName))
-        blockUnusedCount = 0
         for warning in blockWarnList:
           if(warning.find("simulation mismatch") != -1):
             print("\t%s"%(warning))
+
+if "--onlyregisterreplicated" in  limited_options or limited_report == 0:
+  # Prune warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tRegister Replications by HDL File")
+  print("*"*75)
+  for blockName, blockNoteList in blockNotes.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        for note in blockNoteList:
+          if(note.find("replicated") != -1):
+            print("\t%s"%(note))
 
 if "--onlyregisterprunes" in  limited_options or limited_report == 0:
   # Prune warnings by block
@@ -226,7 +238,6 @@ if "--onlyregisterprunes" in  limited_options or limited_report == 0:
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
         print("- %s -"%(blockName))
-        blockUnusedCount = 0
         for warning in blockWarnList:
           if(warning.find("Pruning") != -1):
             print("\t%s"%(warning))
@@ -274,7 +285,6 @@ if "--onlyconstraints" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if((".sdc" in blockName) and (blockName == selectedBlockName)):
       print("- %s -"%(blockName))
-      blockUnusedCount = 0
       for warning in blockWarnList:
         if(warning.find("not found in netlist") != -1):
           print("\t%s"%(warning))
