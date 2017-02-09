@@ -3,6 +3,7 @@
 """
 import os
 import sys
+import re
 if sys.hexversion < 0x03020000:
   raise Exception("This tool requires python 3.2 or greater.")
 
@@ -113,12 +114,13 @@ for line in lineDict["7"]:
       lineSplit = line.split(sep=":", maxsplit=6)
       lineBlock = lineSplit[blockElement].strip("\"").split(sep="/")[-1]
     lineText = lineSplit[-1].split(sep="|")[1]
+    lineText = re.sub(r'view:work.+inst ', 'inst ', lineText)
     if(lineBlock in blockNotes):
       if(lineText not in blockNotes[lineBlock]):
-        blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([lineSplit[-1].split(sep="|")[1]])
+        blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([re.sub(r'view:work.+inst ', 'inst ', lineSplit[-1].split(sep="|")[1])])
     else:
       blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]] = list()
-      blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([lineSplit[-1].split(sep="|")[1]])
+      blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([re.sub(r'view:work.+inst ', 'inst ', lineSplit[-1].split(sep="|")[1])])
 """
   --------------------------------------------------------------
   --------------------------------------------------------------
@@ -240,6 +242,8 @@ if "--onlyregisterprunes" in  limited_options or limited_report == 0:
         print("- %s -"%(blockName))
         for warning in blockWarnList:
           if(warning.find("Pruning") != -1):
+            # Tweaks before printout
+            warning = re.sub(' -- not in use ...', '', warning)
             print("\t%s"%(warning))
 
 if "--onlycounters" in  limited_options or limited_report == 0:
