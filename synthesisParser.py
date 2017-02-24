@@ -19,24 +19,28 @@ def usage():
   print("\t--onlyundrivenports")
   print("\t--onlyportwidthmismatches")
   print("\t--onlysimulationmismatches")
-  print("\t--onlyregisterreplicated")
   print("\t--onlyregisterprunes")
   print("\t--onlyblackboxes")
   print("\t--onlysensitivitylists")
+  print("\t--onlyregisterreplicated")
   print("\t--onlycounters")
   print("\t--onlycomparators")
   print("\t--onlyconstraints")
+  print("\n")
+  print("Optional customizations that further limit the report:\n")
+  print("\t--dontprintemptymodules")
 
 """
   Parse Terminal Arguments with propery flags
 """
 limited_report = 0
 limited_options = []
+empty_module_limit_print = 0
 srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterreplicated","onlyregisterprunes","onlyblackboxes","onlysensitivitylists","onlycounters","onlycomparators","onlyconstraints"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterprunes","onlyblackboxes","onlysensitivitylists","onlyregisterreplicated","onlycounters","onlycomparators","onlyconstraints","dontprintemptymodules"])
 except:
   usage()
   sys.exit()
@@ -46,9 +50,11 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterreplicated","--onlyregisterprunes","--onlyblackboxes","--onlysensitivitylists","--onlycounters","--onlycomparators","--onlyconstraints"):
+  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterprunes","--onlyblackboxes","--onlysensitivitylists","--onlyregisterreplicated","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
+  elif o in ("--dontprintemptymodules"):
+    empty_module_limit_print = 1
   elif o == "-i":
     srr_file = a
   elif o == "-f":
@@ -172,6 +178,7 @@ if "--onlycounts" in  limited_options or limited_report == 0:
         fieldindex += 1
 
 if "--onlyunusedports" in  limited_options or limited_report == 0:
+  thisKeyword = "unused"
   # Print unused warnings by block
   print("\n\n")
   print("*"*75)
@@ -180,12 +187,15 @@ if "--onlyunusedports" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("unused") != -1):
-            print("\t%s"%(warning))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              print("\t%s"%(warning))
 
 if "--onlyundrivenports" in  limited_options or limited_report == 0:
+  thisKeyword = "Undriven"
   # Print undriven warnings by block
   print("\n\n")
   print("*"*75)
@@ -194,12 +204,15 @@ if "--onlyundrivenports" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("Undriven") != -1):
-            print("\t%s"%(warning))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              print("\t%s"%(warning))
 
 if "--onlyportwidthmismatches" in  limited_options or limited_report == 0:
+  thisKeyword = "Port-width mismatch"
   # Print width mismatch warnings by block
   print("\n\n")
   print("*"*75)
@@ -208,12 +221,15 @@ if "--onlyportwidthmismatches" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("Port-width mismatch") != -1):
-            print("\t%s"%(warning))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              print("\t%s"%(warning))
 
 if "--onlysimulationmismatches" in  limited_options or limited_report == 0:
+  thisKeyword = "simulation mismatch"
   # Simulation mismatch warnings by block
   print("\n\n")
   print("*"*75)
@@ -222,26 +238,15 @@ if "--onlysimulationmismatches" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("simulation mismatch") != -1):
-            print("\t%s"%(warning))
-
-if "--onlyregisterreplicated" in  limited_options or limited_report == 0:
-  # Prune warnings by block
-  print("\n\n")
-  print("*"*75)
-  print("\t\t\tRegister Replications by HDL File")
-  print("*"*75)
-  for blockName, blockNoteList in blockNotes.items():
-    if(".sdc" not in blockName):
-      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for note in blockNoteList:
-          if(note.find("replicated") != -1):
-            print("\t%s"%(note))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              print("\t%s"%(warning))
 
 if "--onlyregisterprunes" in  limited_options or limited_report == 0:
+  thisKeyword = "Pruning"
   # Prune warnings by block
   print("\n\n")
   print("*"*75)
@@ -250,14 +255,17 @@ if "--onlyregisterprunes" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("Pruning") != -1):
-            # Tweaks before printout
-            warning = re.sub(' -- not in use ...', '', warning)
-            print("\t%s"%(warning))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              # Tweaks before printout
+              warning = re.sub(' -- not in use ...', '', warning)
+              print("\t%s"%(warning))
 
 if "--onlyblackboxes" in  limited_options or limited_report == 0:
+  thisKeyword = "black box"
   # Black Box warnings by block
   print("\n\n")
   print("*"*75)
@@ -266,14 +274,17 @@ if "--onlyblackboxes" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("black box") != -1):
-            # Tweaks before printout
-            warning = re.sub('Creating black box for empty module ', '', warning)
-            print("\t%s"%(warning))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              # Tweaks before printout
+              warning = re.sub('Creating black box for empty module ', '', warning)
+              print("\t%s"%(warning))
 
 if "--onlysensitivitylists" in  limited_options or limited_report == 0:
+  thisKeyword = "Incomplete sensitivity list"
   # Sensitivity List warnings by block
   print("\n\n")
   print("*"*75)
@@ -282,14 +293,34 @@ if "--onlysensitivitylists" in  limited_options or limited_report == 0:
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          if(warning.find("Incomplete sensitivity list") != -1):
-            # Tweaks before printout
-            #warning = re.sub('Creating black box for empty module ', '', warning)
-            print("\t%s"%(warning))
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              # Tweaks before printout
+              #warning = re.sub('', '', warning)
+              print("\t%s"%(warning))
+
+if "--onlyregisterreplicated" in  limited_options or limited_report == 0:
+  thisKeyword = "replicated"
+  # Prune warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tRegister Replications by HDL File")
+  print("*"*75)
+  for blockName, blockNoteList in blockNotes.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        if((empty_module_limit_print == 1 and len([x for x in blockNoteList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for note in blockNoteList:
+            if(note.find(thisKeyword) != -1):
+              print("\t%s"%(note))
 
 if "--onlycounters" in  limited_options or limited_report == 0:
+  thisKeyword = "Found counter"
   # Counters by HDL File
   print("\n\n")
   print("*"*75)
@@ -299,17 +330,20 @@ if "--onlycounters" in  limited_options or limited_report == 0:
     for blockName, blockNoteList in blockNotes.items():
       if(".sdc" not in blockName):
         if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-          print("- %s -"%(blockName))
-          for note in blockNoteList:
-            if(note.find("Found counter") != -1):
-              if("inst " in note):
-                print("\t%s"%(note.split(sep="inst ")[1]))
-              elif("instance " in note):
-                print("\t%s"%(note.split(sep="instance ")[1]))
+          if((empty_module_limit_print == 1 and len([x for x in blockNoteList if x.find(thisKeyword) != -1]) > 0) or
+          (empty_module_limit_print == 0)):
+            print("- %s -"%(blockName))
+            for note in blockNoteList:
+              if(note.find(thisKeyword) != -1):
+                if("inst " in note):
+                  print("\t%s"%(note.split(sep="inst ")[1]))
+                elif("instance " in note):
+                  print("\t%s"%(note.split(sep="instance ")[1]))
   except IndexError:
     print("Index is invalid in the Counters note.")
 
 if "--onlycomparators" in  limited_options or limited_report == 0:
+  thisKeyword = "comparator,"
   # Comparators by HDL File
   print("\n\n")
   print("*"*75)
@@ -318,10 +352,12 @@ if "--onlycomparators" in  limited_options or limited_report == 0:
   for blockName, blockNoteList in blockNotes.items():
     if(".sdc" not in blockName):
       if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for note in blockNoteList:
-          if(note.find("comparator,") != -1):
-            print("\t%s"%(note))
+        if((empty_module_limit_print == 1 and len([x for x in blockNoteList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for note in blockNoteList:
+            if(note.find(thisKeyword) != -1):
+              print("\t%s"%(note))
 
 if "--onlyconstraints" in  limited_options or limited_report == 0:
   # Print unused warnings by block
@@ -330,10 +366,10 @@ if "--onlyconstraints" in  limited_options or limited_report == 0:
   print("\t\t\tInvalid Synthesis Constraints")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
-    if((".sdc" in blockName) and (blockName == selectedBlockName)):
-      print("- %s -"%(blockName))
-      for warning in blockWarnList:
-        if(warning.find("not found in netlist") != -1):
+    if(".sdc" in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        for warning in blockWarnList:
           print("\t%s"%(warning))
 
 # Get the split counts
