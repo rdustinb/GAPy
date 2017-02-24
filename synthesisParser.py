@@ -22,6 +22,7 @@ def usage():
   print("\t--onlyregisterreplicated")
   print("\t--onlyregisterprunes")
   print("\t--onlyblackboxes")
+  print("\t--onlysensitivitylists")
   print("\t--onlycounters")
   print("\t--onlycomparators")
   print("\t--onlyconstraints")
@@ -35,7 +36,7 @@ srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterreplicated","onlyregisterprunes","onlyblackboxes","onlycounters","onlycomparators","onlyconstraints"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterreplicated","onlyregisterprunes","onlyblackboxes","onlysensitivitylists","onlycounters","onlycomparators","onlyconstraints"])
 except:
   usage()
   sys.exit()
@@ -45,7 +46,7 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterreplicated","--onlyregisterprunes","--onlyblackboxes","--onlycounters","--onlycomparators","--onlyconstraints"):
+  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterreplicated","--onlyregisterprunes","--onlyblackboxes","--onlysensitivitylists","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
   elif o == "-i":
@@ -270,6 +271,22 @@ if "--onlyblackboxes" in  limited_options or limited_report == 0:
           if(warning.find("black box") != -1):
             # Tweaks before printout
             warning = re.sub('Creating black box for empty module ', '', warning)
+            print("\t%s"%(warning))
+
+if "--onlysensitivitylists" in  limited_options or limited_report == 0:
+  # Sensitivity List warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tBlack Boxes by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        for warning in blockWarnList:
+          if(warning.find("Incomplete sensitivity list") != -1):
+            # Tweaks before printout
+            #warning = re.sub('Creating black box for empty module ', '', warning)
             print("\t%s"%(warning))
 
 if "--onlycounters" in  limited_options or limited_report == 0:
