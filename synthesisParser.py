@@ -21,6 +21,7 @@ def usage():
   print("\t--onlysimulationmismatches")
   print("\t--onlyregisterreplicated")
   print("\t--onlyregisterprunes")
+  print("\t--onlyblackboxes")
   print("\t--onlycounters")
   print("\t--onlycomparators")
   print("\t--onlyconstraints")
@@ -34,7 +35,7 @@ srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterreplicated","onlyregisterprunes","onlycounters","onlycomparators","onlyconstraints"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterreplicated","onlyregisterprunes","onlyblackboxes","onlycounters","onlycomparators","onlyconstraints"])
 except:
   usage()
   sys.exit()
@@ -44,7 +45,7 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterreplicated","--onlyregisterprunes","--onlycounters","--onlycomparators","--onlyconstraints"):
+  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterreplicated","--onlyregisterprunes","--onlyblackboxes","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
   elif o == "-i":
@@ -154,7 +155,16 @@ if "--onlycounts" in  limited_options or limited_report == 0:
           warnfieldsize=maxwarncount
         )
       )
-      if fieldindex == 2:
+      if (fieldindex == 3):
+        print("")
+        fieldindex = 0
+      elif (fieldindex == 2 and maxnamesize > 15):
+        print("")
+        fieldindex = 0
+      elif (fieldindex == 1 and maxnamesize > 40):
+        print("")
+        fieldindex = 0
+      elif (fieldindex == 0 and maxnamesize > 80):
         print("")
         fieldindex = 0
       else:
@@ -244,6 +254,22 @@ if "--onlyregisterprunes" in  limited_options or limited_report == 0:
           if(warning.find("Pruning") != -1):
             # Tweaks before printout
             warning = re.sub(' -- not in use ...', '', warning)
+            print("\t%s"%(warning))
+
+if "--onlyblackboxes" in  limited_options or limited_report == 0:
+  # Black Box warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tBlack Boxes by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        for warning in blockWarnList:
+          if(warning.find("black box") != -1):
+            # Tweaks before printout
+            warning = re.sub('Creating black box for empty module ', '', warning)
             print("\t%s"%(warning))
 
 if "--onlycounters" in  limited_options or limited_report == 0:
