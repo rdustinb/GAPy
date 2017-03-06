@@ -1,4 +1,9 @@
 """
+  Todo:
+    Add block that checks the count of translate_on/translate_off directives in each file.
+"""
+
+"""
   Check for correct Python Version.
 """
 import os
@@ -31,7 +36,7 @@ def usage():
   print("\t--dontprintemptymodules")
 
 """
-  Parse Terminal Arguments with propery flags
+  Parse Terminal Arguments with property flags
 """
 limited_report = 0
 limited_options = []
