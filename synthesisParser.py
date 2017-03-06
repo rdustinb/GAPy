@@ -79,25 +79,29 @@ countDict = dict()
 lineDict = dict()
 
 with open(srr_file) as text:
-  for line in text:
-    line = line.strip()
-    if(line.find(":") != -1):
-      lineSplit = line.split(sep=":", maxsplit=6)
-      if(str(len(lineSplit)) in countDict):
-        countDict[str(len(lineSplit))] = countDict[str(len(lineSplit))] + 1
-        lineDict[str(len(lineSplit))].extend([line])
+  try:
+    for line in text:
+      line = line.strip()
+      if(line.find(":") != -1):
+        lineSplit = line.split(sep=":", maxsplit=6)
+        if(str(len(lineSplit)) in countDict):
+          countDict[str(len(lineSplit))] = countDict[str(len(lineSplit))] + 1
+          lineDict[str(len(lineSplit))].extend([line])
+        else:
+          countDict[str(len(lineSplit))] = 1
+          lineDict[str(len(lineSplit))] = list()
+          lineDict[str(len(lineSplit))].extend([line])
       else:
-        countDict[str(len(lineSplit))] = 1
-        lineDict[str(len(lineSplit))] = list()
-        lineDict[str(len(lineSplit))].extend([line])
-    else:
-      if("0" in countDict):
-        countDict["0"] = countDict["0"] + 1
-        lineDict["0"].extend([line])
-      else:
-        countDict["0"] = 1
-        lineDict["0"] = list()
-        lineDict["0"].extend([line])
+        if("0" in countDict):
+          countDict["0"] = countDict["0"] + 1
+          lineDict["0"].extend([line])
+        else:
+          countDict["0"] = 1
+          lineDict["0"] = list()
+          lineDict["0"].extend([line])
+  except UnicodeDecodeError:
+    # Just ignore this decode issue and continue
+    next
 
 # Parse the warnings
 blockWarnings = dict()
