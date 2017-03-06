@@ -18,18 +18,24 @@ def usage():
   """
   print("Usage:\n")
   print("\tsynthesisParser -i <path/to/srr/file>.srr -f <design module file name, or 'all'>\n")
+  print("Optional raw dump for the synthesis script:\n")
+  print("\t--onlywarnings")
+  print("\n")
   print("Optional customizations that limit the report to only one of the types of report blocks:\n")
   print("\t--onlycounts")
   print("\t--onlyunusedports")
   print("\t--onlyundrivenports")
   print("\t--onlyportwidthmismatches")
   print("\t--onlysimulationmismatches")
+  print("\t--onlyunusedsignals")
   print("\t--onlyregisterprunes")
+  print("\t--onlyequivalencyprunes")
   print("\t--onlyblackboxes")
   print("\t--onlysensitivitylists")
   print("\t--onlyregisterreplicated")
   print("\t--onlycounters")
   print("\t--onlycomparators")
+  print("\t--onlysynthesisdirectives")
   print("\t--onlyconstraints")
   print("\n")
   print("Optional customizations that further limit the report:\n")
@@ -45,7 +51,7 @@ srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyregisterprunes","onlyblackboxes","onlysensitivitylists","onlyregisterreplicated","onlycounters","onlycomparators","onlyconstraints","dontprintemptymodules"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlywarnings","onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyunusedsignals","onlyregisterprunes","onlyequivalencyprunes","onlyblackboxes","onlysensitivitylists","onlysynthesisdirectives","onlyregisterreplicated","onlycounters","onlycomparators","onlyconstraints","dontprintemptymodules"])
 except:
   usage()
   sys.exit()
@@ -55,7 +61,7 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyregisterprunes","--onlyblackboxes","--onlysensitivitylists","--onlyregisterreplicated","--onlycounters","--onlycomparators","--onlyconstraints"):
+  elif o in ("--onlywarnings","--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyunusedsignals","--onlyregisterprunes","--onlyequivalencyprunes","--onlyblackboxes","--onlysensitivitylists","--onlysynthesisdirectives","--onlyregisterreplicated","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
   elif o in ("--dontprintemptymodules"):
@@ -143,6 +149,31 @@ for line in lineDict["7"]:
   --------------------------------------------------------------
   --------------------------------------------------------------
 """
+if "--onlywarnings" in  limited_options:
+  # Print unused warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tRaw Warnings by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find('Pruning') != -1):
+              warning = re.sub(' -- not in use ...', '', warning)
+              print("\t%s"%(warning))
+            elif(warning.find('black box') != -1):
+              warning = re.sub('Creating black box for empty module ', '', warning)
+              print("\t%s"%(warning))
+            elif(warning.find("it is equivalent to") != -1):
+              warning = re.sub('To keep the instance, apply constraint syn_preserve=1 on the instance.', '', warning)
+              print("\t%s"%(warning))
+            else:
+              print("\t%s"%(warning))
+
 if "--onlycounts" in  limited_options or limited_report == 0:
   # Print warning counts by block
   print("\n\n")
@@ -238,11 +269,28 @@ if "--onlyportwidthmismatches" in  limited_options or limited_report == 0:
               print("\t%s"%(warning))
 
 if "--onlysimulationmismatches" in  limited_options or limited_report == 0:
-  thisKeyword = "simulation mismatch"
+  thisKeyword = "imulation mismatch"
   # Simulation mismatch warnings by block
   print("\n\n")
   print("*"*75)
   print("\t\t\tSimulation Mismatches by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              print("\t%s"%(warning))
+
+if "--onlyunusedsignals" in  limited_options or limited_report == 0:
+  thisKeyword = "not assigned"
+  # Simulation mismatch warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tUnassigned Signals by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
@@ -273,6 +321,25 @@ if "--onlyregisterprunes" in  limited_options or limited_report == 0:
               warning = re.sub(' -- not in use ...', '', warning)
               print("\t%s"%(warning))
 
+if "--onlyequivalencyprunes" in  limited_options or limited_report == 0:
+  thisKeyword = "it is equivalent to"
+  # Prune warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tPrunes Due to Equivalency by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              # Tweaks before printout
+              warning = re.sub('To keep the instance, apply constraint syn_preserve=1 on the instance.', '', warning)
+              print("\t%s"%(warning))
+
 if "--onlyblackboxes" in  limited_options or limited_report == 0:
   thisKeyword = "black box"
   # Black Box warnings by block
@@ -297,7 +364,7 @@ if "--onlysensitivitylists" in  limited_options or limited_report == 0:
   # Sensitivity List warnings by block
   print("\n\n")
   print("*"*75)
-  print("\t\t\tBlack Boxes by HDL File")
+  print("\t\t\tIncomplete Sensitivity Lists by HDL File")
   print("*"*75)
   for blockName, blockWarnList in blockWarnings.items():
     if(".sdc" not in blockName):
@@ -367,6 +434,25 @@ if "--onlycomparators" in  limited_options or limited_report == 0:
           for note in blockNoteList:
             if(note.find(thisKeyword) != -1):
               print("\t%s"%(note))
+
+if "--onlysynthesisdirectives" in  limited_options or limited_report == 0:
+  thisKeyword = "Unrecognized synthesis directive"
+  # Sensitivity List warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tUnrecognized Synthesis Directives by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              # Tweaks before printout
+              #warning = re.sub('', '', warning)
+              print("\t%s"%(warning))
 
 if "--onlyconstraints" in  limited_options or limited_report == 0:
   # Print unused warnings by block
