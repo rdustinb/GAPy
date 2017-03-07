@@ -368,6 +368,10 @@ if "--onlyequivalencyprunes" in  limited_options or limited_report == 0:
             if(warning.find(thisKeyword) != -1):
               # Tweaks before printout
               warning = re.sub('To keep the instance, apply constraint syn_preserve=1 on the instance.', '', warning)
+              warning = re.sub('Removing ', '', warning)
+              warning = re.sub('user instance ', '', warning)
+              warning = re.sub('sequential instance ', '', warning)
+              warning = re.sub(',  because it is equivalent to instance ', ' -- EQUIVALENT --> ', warning)
               print("\t%s"%(warning))
 
 if "--onlyblackboxes" in  limited_options or limited_report == 0:
