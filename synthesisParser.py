@@ -21,7 +21,7 @@ def usage():
   print("Optional raw dump for the synthesis script:\n")
   print("\t--onlywarnings")
   print("\n")
-  print("Optional customizations that limit the report to only one of the types of report blocks:\n")
+  print("Optional customizations that limit the report to only one of the types of warning report blocks:\n")
   print("\t--onlycounts")
   print("\t--onlyunusedports")
   print("\t--onlyundrivenports")
@@ -32,11 +32,13 @@ def usage():
   print("\t--onlyequivalencyprunes")
   print("\t--onlyblackboxes")
   print("\t--onlysensitivitylists")
+  print("\t--onlysynthesisdirectives")
+  print("\t--onlyconstraints")
+  print("\n")
+  print("Optional customizations that limit the report to only one of the types of note report blocks:\n")
   print("\t--onlyregisterreplicated")
   print("\t--onlycounters")
   print("\t--onlycomparators")
-  print("\t--onlysynthesisdirectives")
-  print("\t--onlyconstraints")
   print("\n")
   print("Optional customizations that further limit the report:\n")
   print("\t--dontprintemptymodules")
@@ -51,7 +53,7 @@ srr_file = ""
 selectedBlockName = "all"
 from getopt import getopt
 try:
-  opts,args = getopt(sys.argv[1:], "hi:f:", ["onlywarnings","onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyunusedsignals","onlyregisterprunes","onlyequivalencyprunes","onlyblackboxes","onlysensitivitylists","onlysynthesisdirectives","onlyregisterreplicated","onlycounters","onlycomparators","onlyconstraints","dontprintemptymodules"])
+  opts,args = getopt(sys.argv[1:], "hi:f:", ["rawwarnings","onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyunusedsignals","onlyregisterprunes","onlyequivalencyprunes","onlyblackboxes","onlysensitivitylists","onlysynthesisdirectives","onlyregisterreplicated","onlycounters","onlycomparators","onlyconstraints","dontprintemptymodules"])
 except:
   usage()
   sys.exit()
@@ -61,7 +63,7 @@ for o, a in opts:
   if o == "-h":
     usage()
     sys.exit()
-  elif o in ("--onlywarnings","--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyunusedsignals","--onlyregisterprunes","--onlyequivalencyprunes","--onlyblackboxes","--onlysensitivitylists","--onlysynthesisdirectives","--onlyregisterreplicated","--onlycounters","--onlycomparators","--onlyconstraints"):
+  elif o in ("--rawwarnings","--onlycounts","--onlyunusedports","--onlyundrivenports","--onlyportwidthmismatches","--onlysimulationmismatches","--onlyunusedsignals","--onlyregisterprunes","--onlyequivalencyprunes","--onlyblackboxes","--onlysensitivitylists","--onlysynthesisdirectives","--onlyregisterreplicated","--onlycounters","--onlycomparators","--onlyconstraints"):
     limited_options.append(o)
     limited_report = 1
   elif o in ("--dontprintemptymodules"):
@@ -109,6 +111,13 @@ with open(srr_file) as text:
     # Just ignore this decode issue and continue
     next
 
+#for thisItem in lineDict["6"]:
+#  if(thisItem.find("@W") != -1):
+#    if(thisItem.find("edf") != -1):
+#      print("%s"%(thisItem))
+#
+#sys.exit()
+
 # Parse the warnings
 blockWarnings = dict()
 blockNotes = dict()
@@ -138,18 +147,40 @@ for line in lineDict["7"]:
       lineBlock = lineSplit[blockElement].strip("\"").split(sep="/")[-1]
     lineText = lineSplit[-1].split(sep="|")[1]
     lineText = re.sub(r'view:work.+inst ', 'inst ', lineText)
-    if(lineBlock in blockNotes):
-      if(lineText not in blockNotes[lineBlock]):
-        blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([re.sub(r'view:work.+inst ', 'inst ', lineSplit[-1].split(sep="|")[1])])
+    # Some notes should be warnings
+    if(lineText.find("is unused") != -1):
+      if(lineBlock in blockWarnings):
+        if(lineText not in blockWarnings[lineBlock]):
+          blockWarnings[lineSplit[2].strip("\"").split(sep="/")[-1]].extend([lineText])
+      else:
+        blockWarnings[lineSplit[2].strip("\"").split(sep="/")[-1]] = list()
+        blockWarnings[lineSplit[2].strip("\"").split(sep="/")[-1]].extend([lineText])
     else:
-      blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]] = list()
-      blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([re.sub(r'view:work.+inst ', 'inst ', lineSplit[-1].split(sep="|")[1])])
+      if(lineBlock in blockNotes):
+        if(lineText not in blockNotes[lineBlock]):
+          blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([lineText])
+      else:
+        blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]] = list()
+        blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([lineText])
+
+for line in lineDict["6"]:
+  if(line.find("@W") != -1):
+    lineSplit = line.split(sep=":", maxsplit=5)
+    lineBlock = lineSplit[1].strip("\"").split(sep="/")[-1]
+    lineText = lineSplit[-1].split(sep="|")[1]
+    lineText = lineText.strip()
+    if(lineBlock in blockWarnings):
+      if(lineText not in blockWarnings[lineBlock]):
+        blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]].extend([lineText])
+    else:
+      blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]] = list()
+      blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]].extend([lineText])
 """
   --------------------------------------------------------------
   --------------------------------------------------------------
   --------------------------------------------------------------
 """
-if "--onlywarnings" in  limited_options:
+if "--rawwarnings" in  limited_options:
   # Print unused warnings by block
   print("\n\n")
   print("*"*75)
@@ -218,7 +249,7 @@ if "--onlycounts" in  limited_options or limited_report == 0:
         fieldindex += 1
 
 if "--onlyunusedports" in  limited_options or limited_report == 0:
-  thisKeyword = "unused"
+  thisKeyword = "is unused"
   # Print unused warnings by block
   print("\n\n")
   print("*"*75)
@@ -378,6 +409,38 @@ if "--onlysensitivitylists" in  limited_options or limited_report == 0:
               #warning = re.sub('', '', warning)
               print("\t%s"%(warning))
 
+if "--onlysynthesisdirectives" in  limited_options or limited_report == 0:
+  thisKeyword = "Unrecognized synthesis directive"
+  # Sensitivity List warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tUnrecognized Synthesis Directives by HDL File")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" not in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
+        (empty_module_limit_print == 0)):
+          print("- %s -"%(blockName))
+          for warning in blockWarnList:
+            if(warning.find(thisKeyword) != -1):
+              # Tweaks before printout
+              #warning = re.sub('', '', warning)
+              print("\t%s"%(warning))
+
+if "--onlyconstraints" in  limited_options or limited_report == 0:
+  # Print unused warnings by block
+  print("\n\n")
+  print("*"*75)
+  print("\t\t\tInvalid Synthesis Constraints")
+  print("*"*75)
+  for blockName, blockWarnList in blockWarnings.items():
+    if(".sdc" in blockName):
+      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
+        print("- %s -"%(blockName))
+        for warning in blockWarnList:
+          print("\t%s"%(warning))
+
 if "--onlyregisterreplicated" in  limited_options or limited_report == 0:
   thisKeyword = "replicated"
   # Prune warnings by block
@@ -435,37 +498,7 @@ if "--onlycomparators" in  limited_options or limited_report == 0:
             if(note.find(thisKeyword) != -1):
               print("\t%s"%(note))
 
-if "--onlysynthesisdirectives" in  limited_options or limited_report == 0:
-  thisKeyword = "Unrecognized synthesis directive"
-  # Sensitivity List warnings by block
-  print("\n\n")
-  print("*"*75)
-  print("\t\t\tUnrecognized Synthesis Directives by HDL File")
-  print("*"*75)
-  for blockName, blockWarnList in blockWarnings.items():
-    if(".sdc" not in blockName):
-      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        if((empty_module_limit_print == 1 and len([x for x in blockWarnList if x.find(thisKeyword) != -1]) > 0) or
-        (empty_module_limit_print == 0)):
-          print("- %s -"%(blockName))
-          for warning in blockWarnList:
-            if(warning.find(thisKeyword) != -1):
-              # Tweaks before printout
-              #warning = re.sub('', '', warning)
-              print("\t%s"%(warning))
-
-if "--onlyconstraints" in  limited_options or limited_report == 0:
-  # Print unused warnings by block
-  print("\n\n")
-  print("*"*75)
-  print("\t\t\tInvalid Synthesis Constraints")
-  print("*"*75)
-  for blockName, blockWarnList in blockWarnings.items():
-    if(".sdc" in blockName):
-      if((selectedBlockName == "all") or (blockName == selectedBlockName)):
-        print("- %s -"%(blockName))
-        for warning in blockWarnList:
-          print("\t%s"%(warning))
+print("\n\n")
 
 # Get the split counts
 #for i,v in countDict.items():
