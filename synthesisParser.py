@@ -19,7 +19,7 @@ def usage():
   print("Usage:\n")
   print("\tsynthesisParser -i <path/to/srr/file>.srr -f <design module file name, or 'all'>\n")
   print("Optional raw dump for the synthesis script:\n")
-  print("\t--onlywarnings")
+  print("\t--rawwarnings")
   print("\n")
   print("Optional customizations that limit the report to only one of the types of warning report blocks:\n")
   print("\t--onlycounts")
