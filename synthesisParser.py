@@ -86,9 +86,12 @@ if srr_file == "":
 countDict = dict()
 lineDict = dict()
 
+lineCount = 0
+
 with open(srr_file) as text:
   try:
     for line in text:
+      lineCount += 1
       line = line.strip()
       if(line.find(":") != -1):
         lineSplit = line.split(sep=":", maxsplit=6)
@@ -107,16 +110,11 @@ with open(srr_file) as text:
           countDict["0"] = 1
           lineDict["0"] = list()
           lineDict["0"].extend([line])
-  except UnicodeDecodeError:
-    # Just ignore this decode issue and continue
-    next
-
-#for thisItem in lineDict["6"]:
-#  if(thisItem.find("@W") != -1):
-#    if(thisItem.find("edf") != -1):
-#      print("%s"%(thisItem))
-#
-#sys.exit()
+  except:
+    print("Encoding error just after line %d"%(lineCount))
+    print("This is a known issue where Synplify Pro prints non-UTF8 encoded characters to the logfile.")
+    print("The fix is to replace the illegal characters with legal characters and rerun this script.")
+    sys.exit(-1)
 
 # Parse the warnings
 blockWarnings = dict()
@@ -163,18 +161,19 @@ for line in lineDict["7"]:
         blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]] = list()
         blockNotes[lineSplit[blockElement].strip("\"").split(sep="/")[-1]].extend([lineText])
 
-for line in lineDict["6"]:
-  if(line.find("@W") != -1):
-    lineSplit = line.split(sep=":", maxsplit=5)
-    lineBlock = lineSplit[1].strip("\"").split(sep="/")[-1]
-    lineText = lineSplit[-1].split(sep="|")[1]
-    lineText = lineText.strip()
-    if(lineBlock in blockWarnings):
-      if(lineText not in blockWarnings[lineBlock]):
+if("6" in lineDict.keys()):
+  for line in lineDict["6"]:
+    if(line.find("@W") != -1):
+      lineSplit = line.split(sep=":", maxsplit=5)
+      lineBlock = lineSplit[1].strip("\"").split(sep="/")[-1]
+      lineText = lineSplit[-1].split(sep="|")[1]
+      lineText = lineText.strip()
+      if(lineBlock in blockWarnings):
+        if(lineText not in blockWarnings[lineBlock]):
+          blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]].extend([lineText])
+      else:
+        blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]] = list()
         blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]].extend([lineText])
-    else:
-      blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]] = list()
-      blockWarnings[lineSplit[1].strip("\"").split(sep="/")[-1]].extend([lineText])
 """
   --------------------------------------------------------------
   --------------------------------------------------------------
@@ -372,7 +371,8 @@ if "--onlyequivalencyprunes" in  limited_options or limited_report == 0:
               print("\t%s"%(warning))
 
 if "--onlyblackboxes" in  limited_options or limited_report == 0:
-  thisKeyword = "black box"
+  thisKeyword = 'black box'
+  thatKeyword = 'Blackbox'
   # Black Box warnings by block
   print("\n\n")
   print("*"*75)
@@ -388,6 +388,8 @@ if "--onlyblackboxes" in  limited_options or limited_report == 0:
             if(warning.find(thisKeyword) != -1):
               # Tweaks before printout
               warning = re.sub('Creating black box for empty module ', '', warning)
+              print("\t%s"%(warning))
+            elif(warning.find(thatKeyword) != -1):
               print("\t%s"%(warning))
 
 if "--onlysensitivitylists" in  limited_options or limited_report == 0:
@@ -499,6 +501,21 @@ if "--onlycomparators" in  limited_options or limited_report == 0:
               print("\t%s"%(note))
 
 print("\n\n")
+
+from subprocess import Popen, PIPE
+from shlex import split
+p1 = Popen(['wc','-l',srr_file], stdout=PIPE)
+p2 = Popen(split("awk '{print $1}'"), stdin=p1.stdout, stdout=PIPE)
+
+expLineCount = str(p2.communicate()[0]).strip("b\\n'")
+
+if(int(expLineCount) != int(lineCount)):
+  print("Error > Parsed line count does not match actual length of srr file.")
+
+print("Parsed %s lines from the srr file."%(lineCount))
+print("Expected %s lines from the srr file."%(expLineCount))
+
+print("\n")
 
 # Get the split counts
 #for i,v in countDict.items():
