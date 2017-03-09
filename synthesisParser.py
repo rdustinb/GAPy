@@ -6,11 +6,16 @@
 """
   Check for correct Python Version.
 """
-import os
 import sys
-import re
+
 if sys.hexversion < 0x03020000:
   raise Exception("This tool requires python 3.2 or greater.")
+
+import os
+import re
+from getopt import getopt
+from subprocess import Popen, PIPE
+from shlex import split
 
 def usage():
   """
@@ -68,7 +73,6 @@ limited_options = []
 empty_module_limit_print = 0
 srr_file = ""
 selectedBlockName = "all"
-from getopt import getopt
 try:
   opts,args = getopt(sys.argv[1:], "hi:f:", ["rawwarnings","onlycounts","onlyunusedports","onlyundrivenports","onlyportwidthmismatches","onlysimulationmismatches","onlyunusedsignals","onlyregisterprunes","onlyequivalencyprunes","onlyblackboxes","onlysensitivitylists","onlysynthesisdirectives","onlyregisterreplicated","onlycounters","onlycomparators","onlyconstraints","dontprintemptymodules"])
 except:
@@ -529,8 +533,6 @@ if "--onlycomparators" in  limited_options or limited_report == 0:
 
 print("\n\n")
 
-from subprocess import Popen, PIPE
-from shlex import split
 p1 = Popen(['wc','-l',srr_file], stdout=PIPE)
 p2 = Popen(split("awk '{print $1}'"), stdin=p1.stdout, stdout=PIPE)
 
