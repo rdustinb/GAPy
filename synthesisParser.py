@@ -105,33 +105,39 @@ lineDict = dict()
 
 lineCount = 0
 
-with open(srr_file) as text:
-  try:
-    for line in text:
-      lineCount += 1
-      line = line.strip()
-      if(line.find(":") != -1):
-        lineSplit = line.split(sep=":", maxsplit=6)
-        if(str(len(lineSplit)) in countDict):
-          countDict[str(len(lineSplit))] = countDict[str(len(lineSplit))] + 1
-          lineDict[str(len(lineSplit))].extend([line])
+try:
+  with open(srr_file) as text:
+    try:
+      for line in text:
+        lineCount += 1
+        line = line.strip()
+        if(line.find(":") != -1):
+          lineSplit = line.split(sep=":", maxsplit=6)
+          if(str(len(lineSplit)) in countDict):
+            countDict[str(len(lineSplit))] = countDict[str(len(lineSplit))] + 1
+            lineDict[str(len(lineSplit))].extend([line])
+          else:
+            countDict[str(len(lineSplit))] = 1
+            lineDict[str(len(lineSplit))] = list()
+            lineDict[str(len(lineSplit))].extend([line])
         else:
-          countDict[str(len(lineSplit))] = 1
-          lineDict[str(len(lineSplit))] = list()
-          lineDict[str(len(lineSplit))].extend([line])
-      else:
-        if("0" in countDict):
-          countDict["0"] = countDict["0"] + 1
-          lineDict["0"].extend([line])
-        else:
-          countDict["0"] = 1
-          lineDict["0"] = list()
-          lineDict["0"].extend([line])
-  except:
-    print("Encoding error just after line %d"%(lineCount))
-    print("This is a known issue where Synplify Pro prints non-UTF8 encoded characters to the logfile.")
-    print("The fix is to replace the illegal characters with legal characters and rerun this script.")
-    sys.exit(-1)
+          if("0" in countDict):
+            countDict["0"] = countDict["0"] + 1
+            lineDict["0"].extend([line])
+          else:
+            countDict["0"] = 1
+            lineDict["0"] = list()
+            lineDict["0"].extend([line])
+    except UnicodeDecodeError:
+      print("")
+      print("Encoding error just after line %d"%(lineCount))
+      print("\tThis is a known issue where Synplify Pro prints non-UTF8 encoded characters to the logfile.")
+      print("\tThe fix is to replace the illegal characters with legal characters and rerun this script.")
+      sys.exit(-1)
+except FileNotFoundError:
+  print("")
+  print("Whoops, that srr file was not found. Please check your path and try again!")
+  sys.exit(-1)
 
 # Parse the warnings
 blockWarnings = dict()
