@@ -104,8 +104,8 @@ Running any of the scripts with the --test option will cause the script to run u
 
 ## Contributors
 
-If you have a feature request, [please add it!](https://github.com/rdustinb/fpga_code_ops/issues)
-You can follow me on Twitter: [@RDustinB](https://twitter.com/RDustinB)
+If you have a feature request, [please add it!](https://github.com/rdustinb/GAPy/issues)
+You can follow me on Twitter: [@DigitalKrampus](https://twitter.com/DigitalKrampus)
 
 ## License
 
