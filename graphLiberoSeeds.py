@@ -4,7 +4,7 @@ import glob
 target = "flt"
 design_name = "my_design"
 
-DEBUG = True
+DEBUG = False
 
 folderToSearch = "pnr/%s/%s_build/designer/%s/"%(target,target,design_name)
 listOfMaxFiles = glob.glob(folderToSearch+"*timing_violations_max*")
